@@ -281,10 +281,7 @@ function client.openInventory(inv, data)
     SetNuiFocus(true, true)
     SetNuiFocusKeepInput(true)
     closeTrunk()
-
-    TriggerEvent('ox_inventory:avid:preview', true)
-
-    currentInventory = right or defaultInventory
+currentInventory = right or defaultInventory
     left.items = PlayerData.inventory
     left.groups = PlayerData.groups
 
@@ -338,10 +335,7 @@ RegisterNetEvent('ox_inventory:forceOpenInventory', function(left, right)
 	SetNuiFocus(true, true)
 	SetNuiFocusKeepInput(true)
 	closeTrunk()
-
-	TriggerEvent('ox_inventory:avid:preview', true)
-
-	currentInventory = right or defaultInventory
+currentInventory = right or defaultInventory
 	currentInventory.ignoreSecurityChecks = true
 	left.items = PlayerData.inventory
 	left.groups = PlayerData.groups
@@ -896,8 +890,7 @@ function client.closeInventory()
 		invOpen = nil
 		SetNuiFocus(false, false)
 		SetNuiFocusKeepInput(false)
-		TriggerEvent('ox_inventory:avid:preview', false)
-		Utils.blurOut()
+Utils.blurOut()
 		closeTrunk()
 		SendNUIMessage({ action = 'closeInventory' })
 		SetInterval(client.interval, 200)
@@ -1600,10 +1593,7 @@ RegisterNetEvent('ox_inventory:viewInventory', function(left, right)
 	SetNuiFocus(true, true)
 	SetNuiFocusKeepInput(true)
 	closeTrunk()
-
-	TriggerEvent('ox_inventory:avid:preview', true)
-
-	currentInventory = right or defaultInventory
+currentInventory = right or defaultInventory
 	currentInventory.ignoreSecurityChecks = true
     currentInventory.type = 'inspect'
 	left.items = PlayerData.inventory
