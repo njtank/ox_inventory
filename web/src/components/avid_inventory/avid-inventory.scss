@@ -614,3 +614,11 @@ $line:rgba(102,217,232,.25);
   background:transparent!important;
   backdrop-filter:none!important;
 }
+
+
+/* Keep spatial inventory cells square instead of stretching to panel height. */
+.avid-grid{
+  flex:0 1 auto!important;
+  width:calc(100% - 1.5rem);
+  align-self:center;
+}
