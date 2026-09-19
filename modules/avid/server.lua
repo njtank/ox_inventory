@@ -105,6 +105,44 @@ return function(Inventory)
         return container
     end
 
+    local function groundInventory(player)
+        local openId = player and player.open
+        if not openId then return end
+
+        local inv = Inventory(openId)
+        if inv and inv.type == 'drop' then return inv end
+    end
+
+    local function serializeGround(inv)
+        if not inv then return end
+
+        local items = {}
+
+        for slot, item in pairs(inv.items or {}) do
+            if item and item.name then
+                items[#items + 1] = {
+                    slot = tonumber(slot),
+                    name = item.name,
+                    label = item.metadata and item.metadata.label or item.label or item.name,
+                    count = item.count or 1,
+                    weight = item.weight or 0,
+                    metadata = item.metadata or {},
+                }
+            end
+        end
+
+        table.sort(items, function(a, b) return a.slot < b.slot end)
+
+        return {
+            id = inv.id,
+            label = inv.label or 'Ground',
+            slots = inv.slots or 6,
+            weight = inv.weight or 0,
+            maxWeight = inv.maxWeight or 0,
+            items = items,
+        }
+    end
+
     local function state(source)
         local inv = Inventory(source)
         if not inv then return end
@@ -118,6 +156,7 @@ return function(Inventory)
             equipment = equipped(inv),
             equipmentSlots = Spatial.GetEquipmentConfig(),
             backpack = serialize(equippedBackpack(inv)),
+            ground = serializeGround(groundInventory(inv)),
         }
     end
 
@@ -204,6 +243,116 @@ return function(Inventory)
         if ok then sync(inv, slot) end
 
         return { success = ok == true, error = err, state = ok and state(source) or nil }
+    end)
+
+    lib.callback.register('ox_inventory:avid:groundToGrid', function(source, data)
+        if type(data) ~= 'table' then return { success = false, error = 'invalid_payload' } end
+
+        local player = Inventory(source)
+        if not player then return { success = false, error = 'invalid_inventory' } end
+
+        local ground = groundInventory(player)
+        if not ground then return { success = false, error = 'ground_not_open' } end
+
+        local backpack = equippedBackpack(player)
+        local target = data.to == 'pockets' and player or data.to == 'backpack' and backpack
+        if not target then return { success = false, error = 'invalid_inventory' } end
+
+        local fromSlot = tonumber(data.slot)
+        local item = fromSlot and ground.items[fromSlot]
+        if not item then return { success = false, error = 'item_missing' } end
+
+        local x, y = tonumber(data.x), tonumber(data.y)
+        local ok, err = Spatial.CanPlace(target, item.name, x, y, data.rotated == true)
+        if not ok then return { success = false, error = err } end
+
+        local targetSlot = Inventory.GetEmptySlot(target)
+        if not targetSlot then return { success = false, error = 'inventory_full' } end
+
+        local count = math.max(1, math.min(math.floor(tonumber(data.count) or item.count), item.count))
+        local metadata = table.clone(item.metadata or {})
+
+        local removed, removeErr = Inventory.RemoveItem(ground, item.name, count, metadata, fromSlot, false, true)
+        if not removed then return { success = false, error = removeErr or 'remove_failed' } end
+
+        local added, response = Inventory.AddItem(target, item.name, count, metadata, targetSlot)
+
+        if not added then
+            Inventory.AddItem(ground, item.name, count, metadata, fromSlot)
+            return { success = false, error = response or 'add_failed' }
+        end
+
+        local newSlot = type(response) == 'table' and response.slot or targetSlot
+        Spatial.SetGrid(target, newSlot, x, y, data.rotated == true)
+
+        sync(target, newSlot)
+        sync(ground, fromSlot)
+
+        if backpack and target == backpack then
+            local bag = equipped(player).backpack
+            local bagItem = bag and player.items[bag.slot]
+
+            if bagItem then
+                Inventory.ContainerWeight(bagItem, backpack.weight, player)
+                sync(player, bag.slot)
+            end
+        end
+
+        return { success = true, state = state(source) }
+    end)
+
+    lib.callback.register('ox_inventory:avid:gridToGround', function(source, data)
+        if type(data) ~= 'table' then return { success = false, error = 'invalid_payload' } end
+
+        local player = Inventory(source)
+        if not player then return { success = false, error = 'invalid_inventory' } end
+
+        local ground = groundInventory(player)
+        if not ground then return { success = false, error = 'ground_not_open' } end
+
+        local backpack = equippedBackpack(player)
+        local fromInv = data.from == 'pockets' and player or data.from == 'backpack' and backpack
+        if not fromInv then return { success = false, error = 'invalid_inventory' } end
+
+        local fromSlot = tonumber(data.slot)
+        local item = fromSlot and fromInv.items[fromSlot]
+        if not item then return { success = false, error = 'item_missing' } end
+        if item.avid and item.avid.equipped then return { success = false, error = 'unequip_first' } end
+
+        local count = math.max(1, math.min(math.floor(tonumber(data.count) or item.count), item.count))
+        local metadata = table.clone(item.metadata or {})
+        local targetSlot = tonumber(data.toSlot)
+
+        if not targetSlot or targetSlot < 1 or targetSlot > ground.slots then
+            targetSlot = Inventory.GetEmptySlot(ground)
+        end
+
+        if not targetSlot then return { success = false, error = 'ground_full' } end
+        if ground.items[targetSlot] then return { success = false, error = 'occupied' } end
+
+        local removed, removeErr = Inventory.RemoveItem(fromInv, item.name, count, metadata, fromSlot, false, true)
+        if not removed then return { success = false, error = removeErr or 'remove_failed' } end
+
+        local added, response = Inventory.AddItem(ground, item.name, count, metadata, targetSlot)
+
+        if not added then
+            Inventory.AddItem(fromInv, item.name, count, metadata, fromSlot)
+            return { success = false, error = response or 'add_failed' }
+        end
+
+        sync(ground, targetSlot)
+
+        if backpack and fromInv == backpack then
+            local bag = equipped(player).backpack
+            local bagItem = bag and player.items[bag.slot]
+
+            if bagItem then
+                Inventory.ContainerWeight(bagItem, backpack.weight, player)
+                sync(player, bag.slot)
+            end
+        end
+
+        return { success = true, state = state(source) }
     end)
 
     lib.callback.register('ox_inventory:avid:drop', function(source, data)
