@@ -94,7 +94,9 @@ const Cell: React.FC<{
     collect: (monitor) => ({ over: monitor.isOver({ shallow: true }) }),
   }), [kind, x, y, onDropItem]);
 
-  return <div ref={(node) => drop(node)} className={`avid-cell ${over ? 'is-over' : ''}`} />;
+  return <div ref={(node) => {
+        drop(node);
+      }} className={`avid-cell ${over ? 'is-over' : ''}`} />;
 };
 
 const Item: React.FC<{
@@ -117,7 +119,9 @@ const Item: React.FC<{
 
   return (
     <button
-      ref={(node) => drag(node)}
+      ref={(node) => {
+        drag(node);
+      }}
       className={`avid-item ${selected ? 'is-selected' : ''} ${muted ? 'is-muted' : ''} ${dragging ? 'is-dragging' : ''}`}
       style={{
         gridColumn: `${grid.x} / span ${item.width}`,
