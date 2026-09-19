@@ -227,6 +227,16 @@ return function(Inventory)
         Spatial.SetGrid(toInv, newSlot, tonumber(data.x), tonumber(data.y), data.rotated == true)
         sync(toInv, newSlot)
 
+        if backpack and (fromInv == backpack or toInv == backpack) then
+            local bag = equipped(player).backpack
+            local bagItem = bag and player.items[bag.slot]
+
+            if bagItem then
+                Inventory.ContainerWeight(bagItem, backpack.weight, player)
+                sync(player, bag.slot)
+            end
+        end
+
         return { success = true, state = state(source) }
     end)
 
