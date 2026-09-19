@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useNuiEvent from '../../hooks/useNuiEvent';
 import { useExitListener } from '../../hooks/useExitListener';
 import { useAppDispatch, useAppSelector } from '../../store';
@@ -23,6 +23,7 @@ import './avid-inventory.scss';
 
 type GridName = 'pockets' | 'backpack';
 type GridPosition = { x: number; y: number; rotated?: boolean };
+
 type AvidItem = {
   slot: number;
   name: string;
@@ -35,6 +36,7 @@ type AvidItem = {
   avid: { version?: number; grid?: GridPosition; equipped?: string };
   compatibleEquipment?: string[];
 };
+
 type GridInventory = {
   id: string | number;
   type?: string;
@@ -46,6 +48,7 @@ type GridInventory = {
   overflow: number[];
   items: AvidItem[];
 };
+
 type AvidState = {
   character?: { name?: string; sex?: string | number };
   pockets: GridInventory;
@@ -53,109 +56,51 @@ type AvidState = {
   equipment: Record<string, AvidItem>;
   equipmentSlots: Record<string, { label: string }>;
 };
+
 type ActionResponse = { success: boolean; error?: string; state?: AvidState };
-type DragPayload = { source: 'grid' | 'equipment'; kind?: GridName; slot: number; rotated: boolean; equipmentSlot?: string };
+type DragPayload = {
+  source: 'grid' | 'equipment';
+  kind?: GridName;
+  slot: number;
+  rotated: boolean;
+  equipmentSlot?: string;
+};
 type Selection = { kind: GridName; slot: number };
-type ViewName = 'inventory' | 'character' | 'storage';
-type ContextState = { x: number; y: number; item: AvidItem; kind: GridName | 'equipment'; equipmentSlot?: string } | null;
+type ContextState = {
+  x: number;
+  y: number;
+  item: AvidItem;
+  kind: GridName | 'equipment';
+  equipmentSlot?: string;
+} | null;
+type PointerSession = {
+  payload: DragPayload;
+  item: AvidItem;
+  startX: number;
+  startY: number;
+  active: boolean;
+};
+
 const EQUIPMENT = ['phone', 'radio', 'backpack', 'armor', 'primary', 'secondary', 'melee'];
 const COMBAT = new Set(['armor', 'primary', 'secondary', 'melee']);
-const browser = !(window as any).GetParentResourceName;
-const kg = (grams = 0) => `${(grams / 1000).toFixed(1)} kg`;
+const kg = (grams = 0) => \`\${(grams / 1000).toFixed(1)} kg\`;
 
 const itemImage = (item: Pick<AvidItem, 'name' | 'metadata'>) => {
   try {
     return getItemUrl({ name: item.name, metadata: item.metadata || {} } as any);
   } catch {
-    return `nui://ox_inventory/web/images/${item.name}.png`;
+    return \`nui://ox_inventory/web/images/\${item.name}.png\`;
   }
 };
 
 const Weight: React.FC<{ value: number; max: number }> = ({ value, max }) => {
   const percent = max > 0 ? Math.min(100, (value / max) * 100) : 0;
+
   return (
     <div className="avid-weight">
       <div><span>{kg(value)}</span><span>{kg(max)}</span></div>
-      <i><b style={{ width: `${percent}%` }} /></i>
+      <i><b style={{ width: \`\${percent}%\` }} /></i>
     </div>
-  );
-};
-
-const Cell: React.FC<{
-  index: number;
-  inventory: GridInventory;
-  kind: GridName;
-  dragging: DragPayload | null;
-  onDropItem: (payload: DragPayload, target: GridName, x: number, y: number) => void;
-}> = ({ index, inventory, kind, dragging, onDropItem }) => {
-  const [over, setOver] = useState(false);
-  const x = (index % inventory.cols) + 1;
-  const y = Math.floor(index / inventory.cols) + 1;
-
-  return (
-    <div
-      className={'avid-cell ' + (over ? 'is-over' : '')}
-      onDragEnter={(event) => {
-        if (!dragging) return;
-        event.preventDefault();
-        setOver(true);
-      }}
-      onDragOver={(event) => {
-        if (!dragging) return;
-        event.preventDefault();
-        event.dataTransfer.dropEffect = 'move';
-      }}
-      onDragLeave={() => setOver(false)}
-      onDrop={(event) => {
-        event.preventDefault();
-        setOver(false);
-        if (dragging) onDropItem(dragging, kind, x, y);
-      }}
-    />
-  );
-};
-
-const Item: React.FC<{
-  item: AvidItem;
-  kind: GridName;
-  selected: boolean;
-  muted: boolean;
-  onSelect: () => void;
-  onUse: () => void;
-  onDragStart: (payload: DragPayload) => void;
-  onDragEnd: () => void;
-  onContext: (event: React.MouseEvent) => void;
-}> = ({ item, kind, selected, muted, onSelect, onUse, onDragStart, onDragEnd, onContext }) => {
-  const grid = item.avid?.grid;
-  if (!grid) return null;
-
-  return (
-    <button
-      draggable
-      className={'avid-item ' + (selected ? 'is-selected ' : '') + (muted ? 'is-muted' : '')}
-      style={{
-        gridColumn: grid.x + ' / span ' + item.width,
-        gridRow: grid.y + ' / span ' + item.height,
-      }}
-      onDragStart={(event) => {
-        const payload: DragPayload = { source: 'grid', kind, slot: item.slot, rotated: grid.rotated === true };
-        event.dataTransfer.effectAllowed = 'move';
-        event.dataTransfer.setData('text/plain', item.name);
-        onDragStart(payload);
-        onSelect();
-      }}
-      onDragEnd={onDragEnd}
-      onContextMenu={onContext}
-      onClick={(event) => {
-        onSelect();
-        if (event.altKey && kind === 'pockets') onUse();
-      }}
-      onDoubleClick={() => kind === 'pockets' && onUse()}
-    >
-      <img src={itemImage(item)} alt="" draggable={false} />
-      {item.count > 1 && <em>{item.count}x</em>}
-      <span>{item.label}</span>
-    </button>
   );
 };
 
@@ -169,48 +114,89 @@ const Grid: React.FC<{
   dragging: DragPayload | null;
   onSelect: (selection: Selection) => void;
   onUse: (item: AvidItem, kind: GridName) => void;
-  onDragStart: (payload: DragPayload) => void;
-  onDragEnd: () => void;
+  onPointerStart: (event: React.PointerEvent, payload: DragPayload, item: AvidItem) => void;
   onContext: (event: React.MouseEvent, item: AvidItem, kind: GridName) => void;
-  onDropItem: (payload: DragPayload, target: GridName, x: number, y: number) => void;
-}> = ({ title, subtitle, inventory, kind, selected, search, dragging, onSelect, onUse, onDragStart, onDragEnd, onContext, onDropItem }) => {
+}> = ({ title, subtitle, inventory, kind, selected, search, dragging, onSelect, onUse, onPointerStart, onContext }) => {
   const cells = useMemo(() => Array.from({ length: inventory.cols * inventory.rows }), [inventory.cols, inventory.rows]);
   const query = search.trim().toLowerCase();
 
   return (
     <section className="avid-panel avid-grid-panel">
       <header className="avid-panel-head">
-        <div><small>{kind === 'pockets' ? 'ON PERSON' : 'PORTABLE STORAGE'}</small><h2>{title}</h2><p>{subtitle}</p></div>
+        <div>
+          <small>{kind === 'pockets' ? 'ON PERSON' : 'PORTABLE STORAGE'}</small>
+          <h2>{title}</h2>
+          <p>{subtitle}</p>
+        </div>
         <Weight value={inventory.weight} max={inventory.maxWeight} />
       </header>
+
       <div
-        className="avid-grid"
+        className={'avid-grid ' + (dragging ? 'is-drag-target' : '')}
         style={{
-          gridTemplateColumns: 'repeat(' + inventory.cols + ', 1fr)',
-          gridTemplateRows: 'repeat(' + inventory.rows + ', 1fr)',
+          gridTemplateColumns: \`repeat(\${inventory.cols}, 1fr)\`,
+          gridTemplateRows: \`repeat(\${inventory.rows}, 1fr)\`,
         }}
       >
-        {cells.map((_, index) => (
-          <Cell key={index} index={index} inventory={inventory} kind={kind} dragging={dragging} onDropItem={onDropItem} />
-        ))}
-        {inventory.items.filter((entry) => !entry.avid?.equipped && entry.avid?.grid).map((entry) => {
-          const match = !query || entry.label.toLowerCase().includes(query) || entry.name.toLowerCase().includes(query);
+        {cells.map((_, index) => {
+          const x = (index % inventory.cols) + 1;
+          const y = Math.floor(index / inventory.cols) + 1;
+
           return (
-            <Item
-              key={entry.slot}
-              item={entry}
-              kind={kind}
-              selected={selected?.kind === kind && selected.slot === entry.slot}
-              muted={!match}
-              onSelect={() => onSelect({ kind, slot: entry.slot })}
-              onUse={() => onUse(entry, kind)}
-              onDragStart={onDragStart}
-              onDragEnd={onDragEnd}
-              onContext={(event) => onContext(event, entry, kind)}
+            <div
+              key={index}
+              className="avid-cell"
+              data-grid-kind={kind}
+              data-grid-x={x}
+              data-grid-y={y}
             />
           );
         })}
+
+        {inventory.items
+          .filter((entry) => !entry.avid?.equipped && entry.avid?.grid)
+          .map((entry) => {
+            const grid = entry.avid.grid!;
+            const match = !query || entry.label.toLowerCase().includes(query) || entry.name.toLowerCase().includes(query);
+            const isDragging = dragging?.source === 'grid' && dragging.kind === kind && dragging.slot === entry.slot;
+
+            return (
+              <button
+                key={entry.slot}
+                className={
+                  'avid-item ' +
+                  (selected?.kind === kind && selected.slot === entry.slot ? 'is-selected ' : '') +
+                  (!match ? 'is-muted ' : '') +
+                  (isDragging ? 'is-dragging ' : '')
+                }
+                style={{
+                  gridColumn: \`\${grid.x} / span \${entry.width}\`,
+                  gridRow: \`\${grid.y} / span \${entry.height}\`,
+                }}
+                onPointerDown={(event) => {
+                  if (event.button !== 0) return;
+                  onSelect({ kind, slot: entry.slot });
+                  onPointerStart(
+                    event,
+                    { source: 'grid', kind, slot: entry.slot, rotated: grid.rotated === true },
+                    entry
+                  );
+                }}
+                onContextMenu={(event) => onContext(event, entry, kind)}
+                onClick={(event) => {
+                  onSelect({ kind, slot: entry.slot });
+                  if (event.altKey && kind === 'pockets') onUse(entry, kind);
+                }}
+                onDoubleClick={() => kind === 'pockets' && onUse(entry, kind)}
+              >
+                <img src={itemImage(entry)} alt="" draggable={false} />
+                {entry.count > 1 && <em>{entry.count}x</em>}
+                <span>{entry.label}</span>
+              </button>
+            );
+          })}
       </div>
+
       {!!inventory.overflow?.length && (
         <div className="avid-warning">{inventory.overflow.length} item(s) need free physical space. Nothing was deleted.</div>
       )}
@@ -221,69 +207,54 @@ const Grid: React.FC<{
 const Character: React.FC<{
   state: AvidState;
   dragging: DragPayload | null;
-  onEquipDrop: (slotName: string, payload: DragPayload) => void;
   onUnequip: (slotName: string) => void;
-  onDragStart: (payload: DragPayload) => void;
-  onDragEnd: () => void;
+  onPointerStart: (event: React.PointerEvent, payload: DragPayload, item: AvidItem) => void;
   onContext: (event: React.MouseEvent, item: AvidItem, equipmentSlot: string) => void;
-}> = ({ state, dragging, onEquipDrop, onUnequip, onDragStart, onDragEnd, onContext }) => {
+}> = ({ state, dragging, onUnequip, onPointerStart, onContext }) => {
   const characterName = state.character?.name || 'Your Character';
 
   return (
     <section className="avid-panel avid-character">
       <header className="avid-panel-head">
-        <div><small>CHARACTER</small><h2>{characterName}</h2><p>What your character actually has ready.</p></div>
+        <div>
+          <small>CHARACTER</small>
+          <h2>{characterName}</h2>
+          <p>Your live character and equipped essentials.</p>
+        </div>
       </header>
+
       <div className="avid-character-body">
-        <div className="avid-avatar" aria-label={characterName}>
-          <div className="avatar-hair" />
-          <div className="avatar-head"><i /><b /></div>
-          <div className="avatar-neck" />
-          <div className="avatar-torso"><span /></div>
-          <div className="avatar-arm left" />
-          <div className="avatar-arm right" />
-          <div className="avatar-leg left" />
-          <div className="avatar-leg right" />
-          <div className="avatar-shoe left" />
-          <div className="avatar-shoe right" />
-          <small>{characterName}</small>
+        <div className="avid-live-character">
+          <span>LIVE CHARACTER</span>
+          <small>Current face · clothing · hair · props</small>
         </div>
 
         <div className="avid-equipment">
           {EQUIPMENT.map((slotName) => {
             const equippedItem = state.equipment[slotName];
-            const compatible = dragging?.source === 'grid' && dragging.kind === 'pockets'
-              ? state.pockets.items.find((entry) => entry.slot === dragging.slot)?.compatibleEquipment?.includes(slotName)
-              : false;
+            const sourceItem = dragging?.source === 'grid' && dragging.kind === 'pockets'
+              ? state.pockets.items.find((entry) => entry.slot === dragging.slot)
+              : undefined;
+            const compatible = Boolean(sourceItem?.compatibleEquipment?.includes(slotName));
             const combatEmpty = COMBAT.has(slotName) && !equippedItem;
 
             return (
               <button
                 key={slotName}
-                draggable={Boolean(equippedItem)}
+                data-equipment-slot={slotName}
                 className={
                   (equippedItem ? 'has-item ' : '') +
                   (combatEmpty ? 'is-subdued ' : '') +
-                  (compatible ? 'is-compatible' : '')
+                  (compatible ? 'is-compatible ' : '')
                 }
-                onDragStart={(event) => {
-                  if (!equippedItem) {
-                    event.preventDefault();
-                    return;
-                  }
-                  event.dataTransfer.effectAllowed = 'move';
-                  onDragStart({ source: 'equipment', slot: equippedItem.slot, rotated: false, equipmentSlot: slotName });
-                }}
-                onDragEnd={onDragEnd}
-                onDragOver={(event) => {
-                  if (compatible) {
-                    event.preventDefault();
-                    event.dataTransfer.dropEffect = 'move';
-                  }
-                }}
-                onDrop={(event) => {
-                  event.preventDefault();
-                  if (compatible && dragging) onEquipDrop(slotName, dragging);
+                onPointerDown={(event) => {
+                  if (event.button !== 0 || !equippedItem) return;
+
+                  onPointerStart(
+                    event,
+                    { source: 'equipment', slot: equippedItem.slot, rotated: false, equipmentSlot: slotName },
+                    equippedItem
+                  );
                 }}
                 onContextMenu={(event) => equippedItem && onContext(event, equippedItem, slotName)}
                 onDoubleClick={() => equippedItem && onUnequip(slotName)}
@@ -291,12 +262,13 @@ const Character: React.FC<{
                 <small>{state.equipmentSlots[slotName]?.label || slotName}</small>
                 {equippedItem
                   ? <><img src={itemImage(equippedItem)} alt="" /><span>{equippedItem.label}</span></>
-                  : <span>{compatible ? 'Drop to equip' : 'Empty'}</span>}
+                  : <span>{compatible ? 'Release to equip' : 'Empty'}</span>}
               </button>
             );
           })}
         </div>
       </div>
+
       <footer>Drag compatible items onto equipment slots. Double-click equipped items to return them to your pockets.</footer>
     </section>
   );
@@ -308,31 +280,49 @@ const Details: React.FC<{
   onRotate: () => void;
   onUse: () => void;
   onGive: () => void;
-}> = ({ item, kind, onRotate, onUse, onGive }) => (
+  onDrop: () => void;
+}> = ({ item, kind, onRotate, onUse, onGive, onDrop }) => (
   <section className="avid-panel avid-details">
-    <header className="avid-panel-head"><div><small>ITEM</small><h2>{item?.label || 'Nothing selected'}</h2><p>{item ? `${item.width}x${item.height} footprint · ${kg(item.weight)}` : 'Select an item to inspect it.'}</p></div></header>
-    {item ? <div className="avid-detail-content">
-      <img src={itemImage(item)} alt="" />
-      <div><strong>{item.label}</strong><small>{item.name}</small>{item.metadata?.description && <p>{String(item.metadata.description)}</p>}</div>
-      <div className="avid-actions">
-        <button onClick={onRotate}>R · Rotate</button>
-        <button onClick={onUse} disabled={kind !== 'pockets'}>Use</button>
-        <button onClick={onGive} disabled={kind !== 'pockets'}>Give</button>
+    <header className="avid-panel-head">
+      <div>
+        <small>ITEM</small>
+        <h2>{item?.label || 'Nothing selected'}</h2>
+        <p>{item ? \`\${item.width}x\${item.height} footprint · \${kg(item.weight)}\` : 'Select an item to inspect it.'}</p>
       </div>
-    </div> : <div className="avid-empty-details">Drag items to repack. Press R to rotate the selected item.</div>}
+    </header>
+
+    {item ? (
+      <div className="avid-detail-content">
+        <img src={itemImage(item)} alt="" />
+        <div>
+          <strong>{item.label}</strong>
+          <small>{item.name}</small>
+          {item.metadata?.description && <p>{String(item.metadata.description)}</p>}
+        </div>
+
+        <div className="avid-actions">
+          <button onClick={onRotate}>R · Rotate</button>
+          <button onClick={onUse} disabled={kind !== 'pockets'}>Use</button>
+          <button onClick={onGive} disabled={kind !== 'pockets'}>Give</button>
+          <button className="is-drop" onClick={onDrop} disabled={!kind}>Drop</button>
+        </div>
+      </div>
+    ) : (
+      <div className="avid-empty-details">Drag items to repack. Press R to rotate the selected item.</div>
+    )}
   </section>
 );
-
 
 const ContextMenu: React.FC<{
   context: ContextState;
   onClose: () => void;
   onUse: () => void;
   onGive: () => void;
+  onDrop: () => void;
   onRotate: () => void;
   onEquip: (slot: string) => void;
   onUnequip: () => void;
-}> = ({ context, onClose, onUse, onGive, onRotate, onEquip, onUnequip }) => {
+}> = ({ context, onClose, onUse, onGive, onDrop, onRotate, onEquip, onUnequip }) => {
   if (!context) return null;
 
   const equipment = context.item.compatibleEquipment || [];
@@ -346,12 +336,19 @@ const ContextMenu: React.FC<{
       >
         <div className="avid-context-head">
           <img src={itemImage(context.item)} alt="" />
-          <div><strong>{context.item.label}</strong><small>{context.item.name}</small></div>
+          <div>
+            <strong>{context.item.label}</strong>
+            <small>{context.item.name}</small>
+          </div>
         </div>
+
         <div className="avid-context-meta">
           <span>{context.item.width}x{context.item.height}</span>
           <span>{kg(context.item.weight)}</span>
-          {context.item.metadata?.durability !== undefined && <span>Durability {String(context.item.metadata.durability)}</span>}
+          <span>{context.item.count}x</span>
+          {context.item.metadata?.durability !== undefined && (
+            <span>Durability {String(context.item.metadata.durability)}</span>
+          )}
         </div>
 
         {context.kind === 'equipment' ? (
@@ -361,6 +358,8 @@ const ContextMenu: React.FC<{
             <button onClick={onUse} disabled={context.kind !== 'pockets'}>Use</button>
             <button onClick={onGive} disabled={context.kind !== 'pockets'}>Give</button>
             <button onClick={onRotate}>Rotate</button>
+            <button className="is-drop" onClick={onDrop}>Drop on ground</button>
+
             {context.kind === 'pockets' && equipment.map((slot) => (
               <button key={slot} onClick={() => onEquip(slot)}>Equip · {slot}</button>
             ))}
@@ -374,14 +373,17 @@ const ContextMenu: React.FC<{
 const AvidInventory: React.FC = () => {
   const dispatch = useAppDispatch();
   const rightInventory = useAppSelector(selectRightInventory);
+
   const [visible, setVisible] = useState(false);
   const [state, setState] = useState<AvidState | null>(null);
   const [selected, setSelected] = useState<Selection | null>(null);
   const [search, setSearch] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
-  const [view, setView] = useState<ViewName>('inventory');
   const [dragging, setDragging] = useState<DragPayload | null>(null);
+  const [dragVisual, setDragVisual] = useState<{ item: AvidItem; x: number; y: number } | null>(null);
   const [context, setContext] = useState<ContextState>(null);
+
+  const pointerSession = useRef<PointerSession | null>(null);
 
   const refresh = useCallback(async (next?: AvidState) => {
     if (next) {
@@ -408,7 +410,9 @@ const AvidInventory: React.FC = () => {
     setVisible(false);
     setSelected(null);
     setDragging(null);
+    setDragVisual(null);
     setContext(null);
+    pointerSession.current = null;
     dispatch(closeContextMenu());
     dispatch(closeTooltip());
   });
@@ -416,7 +420,6 @@ const AvidInventory: React.FC = () => {
   useNuiEvent<{ leftInventory?: OxInventory; rightInventory?: OxInventory }>('setupInventory', (data) => {
     dispatch(setupInventory(data));
     setVisible(true);
-    if (data.rightInventory?.id) setView('storage');
     void refresh();
   });
 
@@ -446,9 +449,21 @@ const AvidInventory: React.FC = () => {
     window.setTimeout(() => void refresh(), 35);
   }, [refresh]);
 
-  const giveItem = useCallback(async () => {
-    await giveSpecificItem(item, selected?.kind);
-  }, [giveSpecificItem, item, selected]);
+  const dropSpecificItem = useCallback(async (entry?: AvidItem, kind?: GridName | 'equipment') => {
+    if (!entry || kind === 'equipment') return;
+
+    const result = await fetchNui<ActionResponse>('avid:drop', {
+      from: kind,
+      slot: entry.slot,
+      count: entry.count,
+    });
+
+    if (!result?.success) return show(result?.error || 'Unable to drop item');
+
+    if (result.state) setState(result.state); else void refresh();
+    setSelected(null);
+    setContext(null);
+  }, [refresh, show]);
 
   const rotateItem = useCallback(async (entry?: AvidItem, kind?: GridName) => {
     if (!entry?.avid?.grid || !kind) return;
@@ -466,10 +481,6 @@ const AvidInventory: React.FC = () => {
     if (result.state) setState(result.state); else void refresh();
   }, [refresh, show]);
 
-  const rotate = useCallback(async () => {
-    await rotateItem(item, selected?.kind);
-  }, [item, selected, rotateItem]);
-
   const dropOnGrid = useCallback(async (payload: DragPayload, target: GridName, x: number, y: number) => {
     if (payload.source === 'equipment') {
       if (target !== 'pockets') {
@@ -485,6 +496,7 @@ const AvidInventory: React.FC = () => {
       });
 
       if (!result?.success) return show(result?.error || 'Unable to unequip item');
+
       if (result.state) setState(result.state); else void refresh();
       setSelected({ kind: 'pockets', slot: payload.slot });
       return;
@@ -498,22 +510,12 @@ const AvidInventory: React.FC = () => {
       : { from: payload.kind, to: target, slot: payload.slot, x, y, rotated: payload.rotated };
 
     const result = await fetchNui<ActionResponse>(endpoint, request);
-    if (!result?.success) return show(result?.error || 'Unable to move item');
 
+    if (!result?.success) return show(result?.error || 'Unable to move item');
     if (result.state) setState(result.state); else void refresh();
 
-    const moved = result.state
-      ? (target === 'pockets' ? result.state.pockets : result.state.backpack)?.items.find((entry) => entry.name && entry.slot !== undefined && (
-          payload.kind === target ? entry.slot === payload.slot : entry.name === (
-            payload.kind === 'pockets'
-              ? state?.pockets.items.find((source) => source.slot === payload.slot)?.name
-              : state?.backpack?.items.find((source) => source.slot === payload.slot)?.name
-          )
-        ))
-      : undefined;
-
-    setSelected({ kind: target, slot: moved?.slot ?? payload.slot });
-  }, [refresh, show, state]);
+    setSelected(null);
+  }, [refresh, show]);
 
   const equipItem = useCallback(async (equipmentSlot: string, entry?: AvidItem, kind?: GridName) => {
     if (!entry || kind !== 'pockets') {
@@ -521,8 +523,13 @@ const AvidInventory: React.FC = () => {
       return;
     }
 
-    const result = await fetchNui<ActionResponse>('avid:equip', { slot: entry.slot, equipmentSlot });
+    const result = await fetchNui<ActionResponse>('avid:equip', {
+      slot: entry.slot,
+      equipmentSlot,
+    });
+
     if (!result?.success) return show(result?.error || 'Unable to equip item');
+
     if (result.state) setState(result.state); else void refresh();
     setSelected(null);
     setContext(null);
@@ -530,29 +537,118 @@ const AvidInventory: React.FC = () => {
 
   const equipDrop = useCallback(async (equipmentSlot: string, payload: DragPayload) => {
     if (payload.source !== 'grid' || payload.kind !== 'pockets' || !state) return;
+
     const entry = state.pockets.items.find((candidate) => candidate.slot === payload.slot);
+
+    if (!entry?.compatibleEquipment?.includes(equipmentSlot)) {
+      show('That item does not fit this equipment slot');
+      return;
+    }
+
     await equipItem(equipmentSlot, entry, 'pockets');
-  }, [equipItem, state]);
+  }, [equipItem, show, state]);
 
   const unequip = useCallback(async (equipmentSlot: string) => {
     const result = await fetchNui<ActionResponse>('avid:unequip', { equipmentSlot });
+
     if (!result?.success) return show(result?.error || 'Unable to unequip item');
+
     if (result.state) setState(result.state); else void refresh();
     setContext(null);
   }, [refresh, show]);
 
-  const openContext = useCallback((event: React.MouseEvent, entry: AvidItem, kind: GridName | 'equipment', equipmentSlot?: string) => {
+  const openContext = useCallback((
+    event: React.MouseEvent,
+    entry: AvidItem,
+    kind: GridName | 'equipment',
+    equipmentSlot?: string
+  ) => {
     event.preventDefault();
     event.stopPropagation();
 
     if (kind !== 'equipment') setSelected({ kind, slot: entry.slot });
 
     const width = 230;
-    const height = 330;
+    const height = 370;
     const x = Math.min(event.clientX, window.innerWidth - width - 12);
     const y = Math.min(event.clientY, window.innerHeight - height - 12);
+
     setContext({ x, y, item: entry, kind, equipmentSlot });
   }, []);
+
+  const startPointerDrag = useCallback((
+    event: React.PointerEvent,
+    payload: DragPayload,
+    entry: AvidItem
+  ) => {
+    pointerSession.current = {
+      payload,
+      item: entry,
+      startX: event.clientX,
+      startY: event.clientY,
+      active: false,
+    };
+  }, []);
+
+  useEffect(() => {
+    const onMove = (event: PointerEvent) => {
+      const session = pointerSession.current;
+      if (!session) return;
+
+      const distance = Math.hypot(event.clientX - session.startX, event.clientY - session.startY);
+
+      if (!session.active && distance >= 5) {
+        session.active = true;
+        setDragging(session.payload);
+        setContext(null);
+      }
+
+      if (session.active) {
+        setDragVisual({ item: session.item, x: event.clientX, y: event.clientY });
+      }
+    };
+
+    const onUp = (event: PointerEvent) => {
+      const session = pointerSession.current;
+      pointerSession.current = null;
+
+      if (!session) return;
+
+      if (!session.active) {
+        setDragging(null);
+        setDragVisual(null);
+        return;
+      }
+
+      const element = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement | null;
+      const equipment = element?.closest<HTMLElement>('[data-equipment-slot]');
+      const cell = element?.closest<HTMLElement>('[data-grid-kind][data-grid-x][data-grid-y]');
+
+      if (equipment) {
+        const slotName = equipment.dataset.equipmentSlot;
+        if (slotName) void equipDrop(slotName, session.payload);
+      } else if (cell) {
+        const kind = cell.dataset.gridKind as GridName;
+        const x = Number(cell.dataset.gridX);
+        const y = Number(cell.dataset.gridY);
+
+        if ((kind === 'pockets' || kind === 'backpack') && x > 0 && y > 0) {
+          void dropOnGrid(session.payload, kind, x, y);
+        }
+      }
+
+      setDragging(null);
+      setDragVisual(null);
+    };
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+  }, [dropOnGrid, equipDrop]);
 
   useEffect(() => {
     const listener = (event: KeyboardEvent) => {
@@ -560,7 +656,7 @@ const AvidInventory: React.FC = () => {
 
       if (event.key.toLowerCase() === 'r' && item) {
         event.preventDefault();
-        void rotate();
+        void rotateItem(item, selected?.kind);
       }
 
       if (event.key === 'Escape' && context) {
@@ -571,9 +667,13 @@ const AvidInventory: React.FC = () => {
 
     window.addEventListener('keydown', listener);
     return () => window.removeEventListener('keydown', listener);
-  }, [visible, item, rotate, context]);
+  }, [visible, item, selected, rotateItem, context]);
 
-  const externalOpen = Boolean(rightInventory?.id && rightInventory.type && rightInventory.type !== 'newdrop');
+  const externalOpen = Boolean(
+    rightInventory?.id &&
+    rightInventory.type &&
+    rightInventory.type !== 'newdrop'
+  );
 
   const gridProps = {
     selected,
@@ -581,20 +681,16 @@ const AvidInventory: React.FC = () => {
     dragging,
     onSelect: setSelected,
     onUse: useItem,
-    onDragStart: setDragging,
-    onDragEnd: () => setDragging(null),
+    onPointerStart: startPointerDrag,
     onContext: openContext,
-    onDropItem: dropOnGrid,
   };
 
   const characterPanel = state ? (
     <Character
       state={state}
       dragging={dragging}
-      onEquipDrop={equipDrop}
       onUnequip={unequip}
-      onDragStart={setDragging}
-      onDragEnd={() => setDragging(null)}
+      onPointerStart={startPointerDrag}
       onContext={(event, entry, equipmentSlot) => openContext(event, entry, 'equipment', equipmentSlot)}
     />
   ) : null;
@@ -621,30 +717,51 @@ const AvidInventory: React.FC = () => {
     <>
       <div className="avid-ui" onContextMenu={(event) => event.preventDefault()}>
         <header className="avid-top">
-          <div><strong>AVID RP</strong><small>MORE THAN A CITY</small></div>
-
-          <nav>
-            <button className={view === 'inventory' ? 'is-active' : ''} onClick={() => setView('inventory')}>Inventory</button>
-            <button className={view === 'character' ? 'is-active' : ''} onClick={() => setView('character')}>Character</button>
-            <button className={view === 'storage' ? 'is-active' : ''} onClick={() => setView('storage')}>Storage</button>
-          </nav>
-
+          <div>
+            <strong>AVID RP</strong>
+            <small>MORE THAN A CITY</small>
+          </div>
+          <div className="avid-top-title">INVENTORY</div>
           <button onClick={() => fetchNui('exit')}>×</button>
         </header>
 
         <div className="avid-toolbar">
           <label>
             <span>⌕</span>
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search what you're carrying..." />
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search what you're carrying..."
+            />
           </label>
-          <div><kbd>R</kbd> Rotate · <kbd>RMB</kbd> Item menu · Double-click Use · Drag to equip</div>
+          <div><kbd>R</kbd> Rotate · <kbd>RMB</kbd> Item menu · Double-click Use · Drag anywhere</div>
         </div>
 
         {!state ? (
           <div className="avid-loading">Loading Avid inventory…</div>
-        ) : view === 'inventory' ? (
+        ) : externalOpen ? (
+          <div className="avid-external-layout">
+            {characterPanel}
+
+            <section className="avid-panel avid-stock-transfer">
+              <header className="avid-panel-head">
+                <div>
+                  <small>STORAGE</small>
+                  <h2>{rightInventory.label || 'External Storage'}</h2>
+                  <p>External storage remains compatible with ox while its spatial layout is migrated.</p>
+                </div>
+              </header>
+              <div className="avid-stock-inner">
+                <LeftInventory />
+                <InventoryControl />
+                <RightInventory />
+              </div>
+            </section>
+          </div>
+        ) : (
           <div className="avid-layout">
             {characterPanel}
+
             <Grid
               title="Pockets"
               subtitle="The things you can actually carry on your person."
@@ -652,68 +769,19 @@ const AvidInventory: React.FC = () => {
               kind="pockets"
               {...gridProps}
             />
+
             <div className="avid-right">
               {backpackPanel}
+
               <Details
                 item={item}
                 kind={selected?.kind}
-                onRotate={() => void rotate()}
+                onRotate={() => void rotateItem(item, selected?.kind)}
                 onUse={() => void useItem(item, selected?.kind)}
-                onGive={() => void giveItem()}
+                onGive={() => void giveSpecificItem(item, selected?.kind)}
+                onDrop={() => void dropSpecificItem(item, selected?.kind)}
               />
             </div>
-          </div>
-        ) : view === 'character' ? (
-          <div className="avid-character-view">
-            {characterPanel}
-            <div className="avid-character-pockets">
-              <Grid
-                title="Ready to Equip"
-                subtitle="Drag compatible items from here onto your character."
-                inventory={state.pockets}
-                kind="pockets"
-                {...gridProps}
-              />
-            </div>
-            <Details
-              item={item}
-              kind={selected?.kind}
-              onRotate={() => void rotate()}
-              onUse={() => void useItem(item, selected?.kind)}
-              onGive={() => void giveItem()}
-            />
-          </div>
-        ) : externalOpen ? (
-          <div className="avid-external-layout">
-            {characterPanel}
-            <section className="avid-panel avid-stock-transfer">
-              <header className="avid-panel-head">
-                <div>
-                  <small>STORAGE</small>
-                  <h2>{rightInventory.label || 'External Storage'}</h2>
-                  <p>External storage keeps ox transfer behavior while native Avid spatial layouts are migrated.</p>
-                </div>
-              </header>
-              <div className="avid-stock-inner"><LeftInventory /><InventoryControl /><RightInventory /></div>
-            </section>
-          </div>
-        ) : (
-          <div className="avid-storage-view">
-            <Grid
-              title="Pockets"
-              subtitle="Drag items between your person and your equipped bag."
-              inventory={state.pockets}
-              kind="pockets"
-              {...gridProps}
-            />
-            {backpackPanel}
-            <Details
-              item={item}
-              kind={selected?.kind}
-              onRotate={() => void rotate()}
-              onUse={() => void useItem(item, selected?.kind)}
-              onGive={() => void giveItem()}
-            />
           </div>
         )}
 
@@ -724,23 +792,42 @@ const AvidInventory: React.FC = () => {
 
         {notice && <div className="avid-toast">{notice}</div>}
 
+        {dragVisual && (
+          <div
+            className="avid-drag-ghost"
+            style={{ left: dragVisual.x + 16, top: dragVisual.y + 16 }}
+          >
+            <img src={itemImage(dragVisual.item)} alt="" />
+            <span>{dragVisual.item.label}</span>
+          </div>
+        )}
+
         <ContextMenu
           context={context}
           onClose={() => setContext(null)}
           onUse={() => {
-            if (context) void useItem(context.item, context.kind === 'equipment' ? undefined : context.kind);
+            if (context) {
+              void useItem(context.item, context.kind === 'equipment' ? undefined : context.kind);
+            }
             setContext(null);
           }}
           onGive={() => {
             if (context) void giveSpecificItem(context.item, context.kind);
             setContext(null);
           }}
+          onDrop={() => {
+            if (context) void dropSpecificItem(context.item, context.kind);
+          }}
           onRotate={() => {
-            if (context && context.kind !== 'equipment') void rotateItem(context.item, context.kind);
+            if (context && context.kind !== 'equipment') {
+              void rotateItem(context.item, context.kind);
+            }
             setContext(null);
           }}
           onEquip={(slot) => {
-            if (context && context.kind !== 'equipment') void equipItem(slot, context.item, context.kind);
+            if (context && context.kind !== 'equipment') {
+              void equipItem(slot, context.item, context.kind);
+            }
           }}
           onUnequip={() => {
             if (context?.equipmentSlot) void unequip(context.equipmentSlot);
