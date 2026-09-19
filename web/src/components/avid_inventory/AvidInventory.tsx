@@ -148,6 +148,7 @@ const Grid: React.FC<{
         style={{
           gridTemplateColumns: `repeat(${inventory.cols}, 1fr)`,
           gridTemplateRows: `repeat(${inventory.rows}, 1fr)`,
+          aspectRatio: `${inventory.cols} / ${inventory.rows}`,
         }}
       >
         {cells.map((_, index) => {
