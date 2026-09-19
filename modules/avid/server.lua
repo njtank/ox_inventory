@@ -184,7 +184,7 @@ return function(Inventory)
 
         if not inv then return { success = false, error = 'invalid_inventory' } end
 
-        local ok, err = Spatial.SetGrid(inv, tonumber(data.slot), tonumber(data.x), tonumber(data.y), data.rotated == true)
+        local ok, err = Spatial.SetGrid(inv, tonumber(data.slot), tonumber(data.x), tonumber(data.y), false)
         if ok then sync(inv, tonumber(data.slot)) end
 
         return { success = ok == true, error = err, state = ok and state(source) or nil }
@@ -243,7 +243,7 @@ return function(Inventory)
             return { success = false, error = 'item_not_equipped' }
         end
 
-        local ok, err = Spatial.UnequipToGrid(inv, slot, tonumber(data.x), tonumber(data.y), data.rotated == true)
+        local ok, err = Spatial.UnequipToGrid(inv, slot, tonumber(data.x), tonumber(data.y), false)
         if ok then sync(inv, slot) end
 
         return { success = ok == true, error = err, state = ok and state(source) or nil }
