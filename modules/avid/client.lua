@@ -122,6 +122,10 @@ RegisterNUICallback('avid:drop', function(data, cb)
     respond(cb, lib.callback.await('ox_inventory:avid:drop', false, data))
 end)
 
+RegisterNUICallback('avid:splitStack', function(data, cb)
+    respond(cb, lib.callback.await('ox_inventory:avid:splitStack', false, data))
+end)
+
 RegisterNUICallback('avid:quickMove', function(data, cb)
     respond(cb, lib.callback.await('ox_inventory:avid:quickMove', false, data))
 end)
