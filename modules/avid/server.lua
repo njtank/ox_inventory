@@ -407,6 +407,76 @@ return function(Inventory)
         return { success = true, state = state(source) }
     end)
 
+    lib.callback.register('ox_inventory:avid:mergeStack', function(source, data)
+        if type(data) ~= 'table' then return { success = false, error = 'invalid_payload' } end
+
+        local player = Inventory(source)
+        if not player then return { success = false, error = 'invalid_inventory' } end
+
+        local backpack = equippedBackpack(player)
+        local fromInv = data.from == 'backpack' and backpack or data.from == 'pockets' and player
+        local toInv = data.to == 'backpack' and backpack or data.to == 'pockets' and player
+
+        if not fromInv or not toInv then return { success = false, error = 'invalid_inventory' } end
+
+        local fromSlot = tonumber(data.fromSlot)
+        local toSlot = tonumber(data.toSlot)
+
+        if not fromSlot or not toSlot then return { success = false, error = 'invalid_slot' } end
+        if fromInv == toInv and fromSlot == toSlot then return { success = false, error = 'same_slot' } end
+
+        local fromItem = fromInv.items[fromSlot]
+        local toItem = toInv.items[toSlot]
+
+        if not fromItem or not toItem then return { success = false, error = 'item_missing' } end
+        if fromItem.avid and fromItem.avid.equipped then return { success = false, error = 'unequip_first' } end
+        if not fromItem.stack or not toItem.stack then return { success = false, error = 'cannot_stack' } end
+        if fromItem.name ~= toItem.name then return { success = false, error = 'cannot_stack' } end
+        if not table.matches(fromItem.metadata or {}, toItem.metadata or {}) then
+            return { success = false, error = 'cannot_stack' }
+        end
+
+        if toInv.maxWeight and fromInv ~= toInv and toInv.weight + (fromItem.weight or 0) > toInv.maxWeight then
+            return { success = false, error = 'inventory_overweight' }
+        end
+
+        local count = fromItem.count
+        local metadata = table.clone(fromItem.metadata or {})
+        local oldGrid = fromItem.avid and fromItem.avid.grid and table.clone(fromItem.avid.grid)
+
+        local removed, removeErr = Inventory.RemoveItem(fromInv, fromItem.name, count, metadata, fromSlot, false, true)
+        if not removed then return { success = false, error = removeErr or 'remove_failed' } end
+
+        local added, response = Inventory.AddItem(toInv, fromItem.name, count, metadata, toSlot)
+
+        if not added then
+            local restored, restoreResponse = Inventory.AddItem(fromInv, fromItem.name, count, metadata, fromSlot)
+
+            if restored and oldGrid then
+                local restoredSlot = type(restoreResponse) == 'table' and restoreResponse.slot or fromSlot
+                Spatial.SetGrid(fromInv, restoredSlot, oldGrid.x, oldGrid.y, false)
+                sync(fromInv, restoredSlot)
+            end
+
+            return { success = false, error = response or 'merge_failed' }
+        end
+
+        sync(fromInv, fromSlot)
+        sync(toInv, toSlot)
+
+        if backpack and (fromInv == backpack or toInv == backpack) then
+            local bag = equipped(player).backpack
+            local bagItem = bag and player.items[bag.slot]
+
+            if bagItem then
+                Inventory.ContainerWeight(bagItem, backpack.weight, player)
+                sync(player, bag.slot)
+            end
+        end
+
+        return { success = true, state = state(source) }
+    end)
+
     lib.callback.register('ox_inventory:avid:splitStack', function(source, data)
         if type(data) ~= 'table' then return { success = false, error = 'invalid_payload' } end
 
@@ -425,8 +495,8 @@ return function(Inventory)
         if item.avid and item.avid.equipped then return { success = false, error = 'unequip_first' } end
         if (item.count or 1) <= 1 then return { success = false, error = 'stack_too_small' } end
 
-        local splitCount = math.floor(item.count / 2)
-        if splitCount < 1 then return { success = false, error = 'stack_too_small' } end
+        local splitCount = math.floor(tonumber(data.count) or math.floor(item.count / 2))
+        splitCount = math.max(1, math.min(splitCount, item.count - 1))
 
         local placement = Spatial.FirstFit(inv, item.name)
         if not placement then return { success = false, error = 'no_grid_space' } end
