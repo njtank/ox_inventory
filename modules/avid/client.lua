@@ -39,10 +39,11 @@ local function startPreview()
 
     CreateThread(function()
         while previewActive and previewPed and DoesEntityExist(previewPed) do
-            -- Anchor the clone inside the left-hand live-character viewport.
-            -- These are normalised screen coordinates; the entity origin is at the feet.
-            local nearPoint, normal = GetWorldCoordFromScreenCoord(0.095, 0.835)
-            local depth = 2.20
+            -- Frame the clone inside the dedicated live-character viewport.
+            -- Pulling the clone farther from the camera keeps the whole body inside
+            -- the panel, while the screen anchor places it clear of the equipment column.
+            local nearPoint, normal = GetWorldCoordFromScreenCoord(0.118, 0.755)
+            local depth = 3.05
             local pos = nearPoint + normal * depth
             local camRot = GetGameplayCamRot(2)
 
