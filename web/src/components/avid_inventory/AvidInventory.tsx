@@ -379,9 +379,16 @@ const AvidInventory: React.FC = () => {
   const [selected, setSelected] = useState<Selection | null>(null);
   const [search, setSearch] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
+  const [view, setView] = useState<ViewName>('inventory');
+  const [dragging, setDragging] = useState<DragPayload | null>(null);
+  const [context, setContext] = useState<ContextState>(null);
 
   const refresh = useCallback(async (next?: AvidState) => {
-    if (next) return setState(next);
+    if (next) {
+      setState(next);
+      return;
+    }
+
     const value = await fetchNui<AvidState>('avid:getState');
     if (value) setState(value);
   }, []);
@@ -389,24 +396,42 @@ const AvidInventory: React.FC = () => {
   const show = useCallback((message: string) => {
     const clean = message.replaceAll('_', ' ');
     setNotice(clean);
-    window.setTimeout(() => setNotice((v) => v === clean ? null : v), 2400);
+    window.setTimeout(() => setNotice((value) => value === clean ? null : value), 2400);
   }, []);
 
-  useNuiEvent<boolean>('setInventoryVisible', (v) => { setVisible(v); if (v) void refresh(); });
+  useNuiEvent<boolean>('setInventoryVisible', (value) => {
+    setVisible(value);
+    if (value) void refresh();
+  });
+
   useNuiEvent<false>('closeInventory', () => {
-    setVisible(false); setSelected(null); dispatch(closeContextMenu()); dispatch(closeTooltip());
+    setVisible(false);
+    setSelected(null);
+    setDragging(null);
+    setContext(null);
+    dispatch(closeContextMenu());
+    dispatch(closeTooltip());
   });
+
   useNuiEvent<{ leftInventory?: OxInventory; rightInventory?: OxInventory }>('setupInventory', (data) => {
-    dispatch(setupInventory(data)); setVisible(true); void refresh();
+    dispatch(setupInventory(data));
+    setVisible(true);
+    if (data.rightInventory?.id) setView('storage');
+    void refresh();
   });
-  useNuiEvent('refreshSlots', (data) => { dispatch(refreshSlots(data)); window.setTimeout(() => void refresh(), 35); });
+
+  useNuiEvent('refreshSlots', (data) => {
+    dispatch(refreshSlots(data));
+    window.setTimeout(() => void refresh(), 35);
+  });
+
   useNuiEvent('displayMetadata', (data: Array<{ metadata: string; value: string }>) => dispatch(setAdditionalMetadata(data)));
   useExitListener(setVisible);
 
   const item = useMemo(() => {
     if (!state || !selected) return undefined;
-    const inv = selected.kind === 'pockets' ? state.pockets : state.backpack;
-    return inv?.items.find((entry) => entry.slot === selected.slot);
+    const inventory = selected.kind === 'pockets' ? state.pockets : state.backpack;
+    return inventory?.items.find((entry) => entry.slot === selected.slot);
   }, [state, selected]);
 
   const useItem = useCallback(async (entry?: AvidItem, kind?: GridName) => {
@@ -415,89 +440,320 @@ const AvidInventory: React.FC = () => {
     window.setTimeout(() => void refresh(), 35);
   }, [refresh]);
 
-  const giveItem = useCallback(async () => {
-    if (!item || selected?.kind !== 'pockets') return;
-    await fetchNui('giveItem', { slot: item.slot, count: 0 });
+  const giveSpecificItem = useCallback(async (entry?: AvidItem, kind?: GridName | 'equipment') => {
+    if (!entry || kind !== 'pockets') return;
+    await fetchNui('giveItem', { slot: entry.slot, count: 0 });
     window.setTimeout(() => void refresh(), 35);
-  }, [item, selected, refresh]);
+  }, [refresh]);
 
-  const move = useCallback(async (source: GridName, target: GridName, slot: number, x: number, y: number, rotated: boolean) => {
-    const endpoint = source === target ? 'avid:setGrid' : 'avid:move';
-    const payload = source === target
-      ? { inventory: target, slot, x, y, rotated }
-      : { from: source, to: target, slot, x, y, rotated };
+  const giveItem = useCallback(async () => {
+    await giveSpecificItem(item, selected?.kind);
+  }, [giveSpecificItem, item, selected]);
 
-    const result = await fetchNui<ActionResponse>(endpoint, payload);
-    if (!result?.success) return show(result?.error || 'Unable to move item');
+  const rotateItem = useCallback(async (entry?: AvidItem, kind?: GridName) => {
+    if (!entry?.avid?.grid || !kind) return;
+
+    const grid = entry.avid.grid;
+    const result = await fetchNui<ActionResponse>('avid:setGrid', {
+      inventory: kind,
+      slot: entry.slot,
+      x: grid.x,
+      y: grid.y,
+      rotated: !grid.rotated,
+    });
+
+    if (!result?.success) return show(result?.error || 'Unable to rotate item');
     if (result.state) setState(result.state); else void refresh();
-    setSelected({ kind: target, slot });
   }, [refresh, show]);
 
   const rotate = useCallback(async () => {
-    if (!item?.avid?.grid || !selected) return;
-    const grid = item.avid.grid;
-    const result = await fetchNui<ActionResponse>('avid:setGrid', {
-      inventory: selected.kind, slot: item.slot, x: grid.x, y: grid.y, rotated: !grid.rotated,
-    });
-    if (!result?.success) return show(result?.error || 'Unable to rotate item');
+    await rotateItem(item, selected?.kind);
+  }, [item, selected, rotateItem]);
+
+  const dropOnGrid = useCallback(async (payload: DragPayload, target: GridName, x: number, y: number) => {
+    if (payload.source === 'equipment') {
+      if (target !== 'pockets') {
+        show('Equipped items return to pockets first');
+        return;
+      }
+
+      const result = await fetchNui<ActionResponse>('avid:unequipToGrid', {
+        slot: payload.slot,
+        x,
+        y,
+        rotated: payload.rotated,
+      });
+
+      if (!result?.success) return show(result?.error || 'Unable to unequip item');
+      if (result.state) setState(result.state); else void refresh();
+      setSelected({ kind: 'pockets', slot: payload.slot });
+      return;
+    }
+
+    if (!payload.kind) return;
+
+    const endpoint = payload.kind === target ? 'avid:setGrid' : 'avid:move';
+    const request = payload.kind === target
+      ? { inventory: target, slot: payload.slot, x, y, rotated: payload.rotated }
+      : { from: payload.kind, to: target, slot: payload.slot, x, y, rotated: payload.rotated };
+
+    const result = await fetchNui<ActionResponse>(endpoint, request);
+    if (!result?.success) return show(result?.error || 'Unable to move item');
+
     if (result.state) setState(result.state); else void refresh();
-  }, [item, selected, refresh, show]);
+
+    const moved = result.state
+      ? (target === 'pockets' ? result.state.pockets : result.state.backpack)?.items.find((entry) => entry.name && entry.slot !== undefined && (
+          payload.kind === target ? entry.slot === payload.slot : entry.name === (
+            payload.kind === 'pockets'
+              ? state?.pockets.items.find((source) => source.slot === payload.slot)?.name
+              : state?.backpack?.items.find((source) => source.slot === payload.slot)?.name
+          )
+        ))
+      : undefined;
+
+    setSelected({ kind: target, slot: moved?.slot ?? payload.slot });
+  }, [refresh, show, state]);
+
+  const equipItem = useCallback(async (equipmentSlot: string, entry?: AvidItem, kind?: GridName) => {
+    if (!entry || kind !== 'pockets') {
+      show('Items must be in your pockets before equipping');
+      return;
+    }
+
+    const result = await fetchNui<ActionResponse>('avid:equip', { slot: entry.slot, equipmentSlot });
+    if (!result?.success) return show(result?.error || 'Unable to equip item');
+    if (result.state) setState(result.state); else void refresh();
+    setSelected(null);
+    setContext(null);
+  }, [refresh, show]);
+
+  const equipDrop = useCallback(async (equipmentSlot: string, payload: DragPayload) => {
+    if (payload.source !== 'grid' || payload.kind !== 'pockets' || !state) return;
+    const entry = state.pockets.items.find((candidate) => candidate.slot === payload.slot);
+    await equipItem(equipmentSlot, entry, 'pockets');
+  }, [equipItem, state]);
+
+  const unequip = useCallback(async (equipmentSlot: string) => {
+    const result = await fetchNui<ActionResponse>('avid:unequip', { equipmentSlot });
+    if (!result?.success) return show(result?.error || 'Unable to unequip item');
+    if (result.state) setState(result.state); else void refresh();
+    setContext(null);
+  }, [refresh, show]);
+
+  const openContext = useCallback((event: React.MouseEvent, entry: AvidItem, kind: GridName | 'equipment', equipmentSlot?: string) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (kind !== 'equipment') setSelected({ kind, slot: entry.slot });
+
+    const width = 230;
+    const height = 330;
+    const x = Math.min(event.clientX, window.innerWidth - width - 12);
+    const y = Math.min(event.clientY, window.innerHeight - height - 12);
+    setContext({ x, y, item: entry, kind, equipmentSlot });
+  }, []);
 
   useEffect(() => {
     const listener = (event: KeyboardEvent) => {
-      if (visible && event.key.toLowerCase() === 'r' && item) { event.preventDefault(); void rotate(); }
+      if (!visible) return;
+
+      if (event.key.toLowerCase() === 'r' && item) {
+        event.preventDefault();
+        void rotate();
+      }
+
+      if (event.key === 'Escape' && context) {
+        event.preventDefault();
+        setContext(null);
+      }
     };
+
     window.addEventListener('keydown', listener);
     return () => window.removeEventListener('keydown', listener);
-  }, [visible, item, rotate]);
+  }, [visible, item, rotate, context]);
 
   const externalOpen = Boolean(rightInventory?.id && rightInventory.type && rightInventory.type !== 'newdrop');
 
+  const gridProps = {
+    selected,
+    search,
+    dragging,
+    onSelect: setSelected,
+    onUse: useItem,
+    onDragStart: setDragging,
+    onDragEnd: () => setDragging(null),
+    onContext: openContext,
+    onDropItem: dropOnGrid,
+  };
+
+  const characterPanel = state ? (
+    <Character
+      state={state}
+      dragging={dragging}
+      onEquipDrop={equipDrop}
+      onUnequip={unequip}
+      onDragStart={setDragging}
+      onDragEnd={() => setDragging(null)}
+      onContext={openContext}
+    />
+  ) : null;
+
+  const backpackPanel = state?.backpack ? (
+    <Grid
+      title={state.backpack.label || 'Backpack'}
+      subtitle="A separate physical container tied to the bag you equipped."
+      inventory={state.backpack}
+      kind="backpack"
+      {...gridProps}
+    />
+  ) : (
+    <section className="avid-panel avid-no-bag">
+      <div>▱</div>
+      <h2>No bag equipped</h2>
+      <p>Drag a backpack from your pockets onto the Bag equipment slot.</p>
+    </section>
+  );
+
   if (!visible) return <InventoryHotbar />;
 
-  return <>
-    <div className="avid-ui">
-      <header className="avid-top">
-        <div><strong>AVID RP</strong><small>MORE THAN A CITY</small></div>
-        <nav><span>Inventory</span><span>Character</span><span>Storage</span></nav>
-        <button onClick={() => fetchNui('exit')}>×</button>
-      </header>
+  return (
+    <>
+      <div className="avid-ui" onContextMenu={(event) => event.preventDefault()}>
+        <header className="avid-top">
+          <div><strong>AVID RP</strong><small>MORE THAN A CITY</small></div>
 
-      <div className="avid-toolbar">
-        <label><span>⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search what you're carrying..." /></label>
-        <div><kbd>R</kbd> Rotate · <kbd>ALT</kbd> + click Use · Double-click Use</div>
-      </div>
+          <nav>
+            <button className={view === 'inventory' ? 'is-active' : ''} onClick={() => setView('inventory')}>Inventory</button>
+            <button className={view === 'character' ? 'is-active' : ''} onClick={() => setView('character')}>Character</button>
+            <button className={view === 'storage' ? 'is-active' : ''} onClick={() => setView('storage')}>Storage</button>
+          </nav>
 
-      {state ? (
-        externalOpen ? (
+          <button onClick={() => fetchNui('exit')}>×</button>
+        </header>
+
+        <div className="avid-toolbar">
+          <label>
+            <span>⌕</span>
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search what you're carrying..." />
+          </label>
+          <div><kbd>R</kbd> Rotate · <kbd>RMB</kbd> Item menu · Double-click Use · Drag to equip</div>
+        </div>
+
+        {!state ? (
+          <div className="avid-loading">Loading Avid inventory…</div>
+        ) : view === 'inventory' ? (
+          <div className="avid-layout">
+            {characterPanel}
+            <Grid
+              title="Pockets"
+              subtitle="The things you can actually carry on your person."
+              inventory={state.pockets}
+              kind="pockets"
+              {...gridProps}
+            />
+            <div className="avid-right">
+              {backpackPanel}
+              <Details
+                item={item}
+                kind={selected?.kind}
+                onRotate={() => void rotate()}
+                onUse={() => void useItem(item, selected?.kind)}
+                onGive={() => void giveItem()}
+              />
+            </div>
+          </div>
+        ) : view === 'character' ? (
+          <div className="avid-character-view">
+            {characterPanel}
+            <div className="avid-character-pockets">
+              <Grid
+                title="Ready to Equip"
+                subtitle="Drag compatible items from here onto your character."
+                inventory={state.pockets}
+                kind="pockets"
+                {...gridProps}
+              />
+            </div>
+            <Details
+              item={item}
+              kind={selected?.kind}
+              onRotate={() => void rotate()}
+              onUse={() => void useItem(item, selected?.kind)}
+              onGive={() => void giveItem()}
+            />
+          </div>
+        ) : externalOpen ? (
           <div className="avid-external-layout">
-            <Character state={state} selected={item} selectedKind={selected?.kind} update={(v) => v ? setState(v) : void refresh()} error={show} />
+            {characterPanel}
             <section className="avid-panel avid-stock-transfer">
-              <header className="avid-panel-head"><div><small>TRANSFER</small><h2>{rightInventory.label || 'Storage'}</h2><p>External inventories keep ox's proven transfer rules while Avid spatial layouts are added per container type.</p></div></header>
+              <header className="avid-panel-head">
+                <div>
+                  <small>STORAGE</small>
+                  <h2>{rightInventory.label || 'External Storage'}</h2>
+                  <p>External storage keeps ox transfer behavior while native Avid spatial layouts are migrated.</p>
+                </div>
+              </header>
               <div className="avid-stock-inner"><LeftInventory /><InventoryControl /><RightInventory /></div>
             </section>
           </div>
         ) : (
-          <div className="avid-layout">
-            <Character state={state} selected={item} selectedKind={selected?.kind} update={(v) => v ? setState(v) : void refresh()} error={show} />
-            <Grid title="Pockets" subtitle="The things you can actually carry on your person." inventory={state.pockets} kind="pockets" selected={selected} search={search} onSelect={setSelected} onUse={useItem} onDropItem={move} />
-            <div className="avid-right">
-              {state.backpack
-                ? <Grid title={state.backpack.label || 'Backpack'} subtitle="A separate physical container." inventory={state.backpack} kind="backpack" selected={selected} search={search} onSelect={setSelected} onUse={useItem} onDropItem={move} />
-                : <section className="avid-panel avid-no-bag"><div>▱</div><h2>No bag equipped</h2><p>Equip a backpack to add portable storage.</p></section>}
-              <Details item={item} kind={selected?.kind} onRotate={() => void rotate()} onUse={() => void useItem(item, selected?.kind)} onGive={() => void giveItem()} />
-            </div>
+          <div className="avid-storage-view">
+            <Grid
+              title="Pockets"
+              subtitle="Drag items between your person and your equipped bag."
+              inventory={state.pockets}
+              kind="pockets"
+              {...gridProps}
+            />
+            {backpackPanel}
+            <Details
+              item={item}
+              kind={selected?.kind}
+              onRotate={() => void rotate()}
+              onUse={() => void useItem(item, selected?.kind)}
+              onGive={() => void giveItem()}
+            />
           </div>
-        )
-      ) : <div className="avid-loading">Loading Avid inventory…</div>}
+        )}
 
-      <footer className="avid-footer"><span>LOS SANTOS, A DIFFERENT KIND OF LIFE</span><span>PEOPLE › STORIES › A BETTER LOS SANTOS</span></footer>
-      {notice && <div className="avid-toast">{notice}</div>}
-      <Tooltip />
-      <InventoryContext />
-    </div>
-    <InventoryHotbar />
-  </>;
+        <footer className="avid-footer">
+          <span>LOS SANTOS, A DIFFERENT KIND OF LIFE</span>
+          <span>PEOPLE › STORIES › A BETTER LOS SANTOS</span>
+        </footer>
+
+        {notice && <div className="avid-toast">{notice}</div>}
+
+        <ContextMenu
+          context={context}
+          onClose={() => setContext(null)}
+          onUse={() => {
+            if (context) void useItem(context.item, context.kind === 'equipment' ? undefined : context.kind);
+            setContext(null);
+          }}
+          onGive={() => {
+            if (context) void giveSpecificItem(context.item, context.kind);
+            setContext(null);
+          }}
+          onRotate={() => {
+            if (context && context.kind !== 'equipment') void rotateItem(context.item, context.kind);
+            setContext(null);
+          }}
+          onEquip={(slot) => {
+            if (context && context.kind !== 'equipment') void equipItem(slot, context.item, context.kind);
+          }}
+          onUnequip={() => {
+            if (context?.equipmentSlot) void unequip(context.equipmentSlot);
+          }}
+        />
+
+        <Tooltip />
+        <InventoryContext />
+      </div>
+
+      <InventoryHotbar />
+    </>
+  );
 };
 
 export default AvidInventory;
