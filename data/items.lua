@@ -68,24 +68,30 @@ return {
 		label = 'Small Backpack',
 		weight = 900,
 		stack = false,
-		close = true,
-		description = 'A compact everyday backpack.'
+		close = false,
+		consume = 0,
+		description = 'A compact everyday backpack with 6x5 storage.',
+		client = { image = 'backpack_small.png' }
 	},
 
 	['backpack_medium'] = {
 		label = 'Backpack',
 		weight = 1300,
 		stack = false,
-		close = true,
-		description = 'A practical backpack for everyday carry.'
+		close = false,
+		consume = 0,
+		description = 'A practical everyday backpack with 7x6 storage.',
+		client = { image = 'backpack_medium.png' }
 	},
 
 	['backpack_large'] = {
 		label = 'Large Backpack',
 		weight = 1900,
 		stack = false,
-		close = true,
-		description = 'A larger backpack for work, travel, or long days in the city.'
+		close = false,
+		consume = 0,
+		description = 'A larger backpack with 8x7 storage for work, travel, or long days in the city.',
+		client = { image = 'backpack_large.png' }
 	},
 
 	['black_money'] = {
