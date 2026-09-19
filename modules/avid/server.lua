@@ -110,6 +110,10 @@ return function(Inventory)
         if not inv then return end
 
         return {
+            character = {
+                name = inv.label or (inv.player and inv.player.name) or 'Character',
+                sex = inv.player and inv.player.sex or nil,
+            },
             pockets = serialize(inv),
             equipment = equipped(inv),
             equipmentSlots = Spatial.GetEquipmentConfig(),
