@@ -1803,6 +1803,25 @@ lib.callback.register('ox_inventory:swapItems', function(source, data)
             data.count = fromData.count
         end
 
+        if not sameInventory and data.toType ~= 'newdrop' then
+            local stacking = toData
+                and toData.name == fromData.name
+                and toData.stack
+                and table.matches(toData.metadata, fromData.metadata)
+
+            if not toData then
+                if not AvidSpatial.CanFitRecords(toInventory, fromData.name, 1) then
+                    return false, 'cannot_carry'
+                end
+            elseif not stacking then
+                if not AvidSpatial.CanReplace(toInventory, fromData.name, data.toSlot)
+                    or not AvidSpatial.CanReplace(fromInventory, toData.name, data.fromSlot)
+                then
+                    return false, 'cannot_carry'
+                end
+            end
+        end
+
         if data.toType == 'newdrop' then
             return dropItem(source, fromInventory, fromData, data)
         end
@@ -2006,8 +2025,20 @@ lib.callback.register('ox_inventory:swapItems', function(source, data)
 				end
 			end
 
+			if not sameInventory then
+				if hookPayload.action == 'swap' then
+					if fromData then fromData.avid = nil end
+					if toData then toData.avid = nil end
+				elseif hookPayload.action == 'move' then
+					if toData then toData.avid = nil end
+				end
+			end
+
 			fromInventory.items[data.fromSlot] = fromData
 			toInventory.items[data.toSlot] = toData
+
+			AvidSpatial.Normalize(fromInventory)
+			if not sameInventory then AvidSpatial.Normalize(toInventory) end
 
 			if fromInventory.changed ~= nil then fromInventory.changed = true end
 			if toInventory.changed ~= nil then toInventory.changed = true end
