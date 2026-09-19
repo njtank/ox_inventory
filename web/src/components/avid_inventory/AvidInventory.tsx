@@ -595,7 +595,7 @@ const AvidInventory: React.FC = () => {
       onUnequip={unequip}
       onDragStart={setDragging}
       onDragEnd={() => setDragging(null)}
-      onContext={openContext}
+      onContext={(event, entry, equipmentSlot) => openContext(event, entry, 'equipment', equipmentSlot)}
     />
   ) : null;
 
