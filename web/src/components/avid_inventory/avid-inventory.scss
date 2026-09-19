@@ -26,3 +26,296 @@ $line:rgba(102,217,232,.25);
 .avid-loading{height:78.8vh;display:grid;place-items:center;color:#789198;font-size:.7rem}.avid-footer{height:4.3vh;display:flex;align-items:end;justify-content:space-between;color:#536c73;font-size:.5rem;letter-spacing:.17em}.avid-toast{position:fixed;left:50%;bottom:7vh;z-index:100;transform:translateX(-50%);padding:.58rem .8rem;border:1px solid rgba(102,217,232,.25);border-radius:5px;background:rgba(7,17,22,.97);color:#cae2e5;font-size:.62rem;text-transform:capitalize}
 .hotbar-container{z-index:40!important}.hotbar-item-slot{border-color:rgba(102,217,232,.2)!important;background-color:rgba(7,17,22,.94)!important}.hotbar-item-slot .inventory-slot-number{background:$accent!important;color:#061216!important}
 @media(max-width:1450px){.avid-layout{grid-template-columns:minmax(250px,.82fr) minmax(400px,1.17fr) minmax(320px,.96fr)}.avid-equipment{width:52%}.avid-top nav{gap:.8rem}}
+
+
+/* Phase 2 interaction pass */
+.avid-top nav{display:flex;align-items:stretch;height:100%;gap:0}
+.avid-top nav span{border:0!important}
+.avid-top nav button{
+  position:relative;
+  min-width:118px;
+  padding:0 1.1rem;
+  border:0;
+  border-bottom:2px solid transparent;
+  background:transparent;
+  color:#667d84;
+  font-size:.68rem;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  cursor:pointer;
+  transition:.14s ease;
+}
+.avid-top nav button:hover{color:#cde8eb;background:rgba(102,217,232,.025)}
+.avid-top nav button.is-active{
+  color:#e8fbfd;
+  border-bottom-color:$accent;
+  text-shadow:0 0 18px rgba(102,217,232,.24);
+}
+.avid-top nav button.is-active:after{
+  content:"";
+  position:absolute;
+  right:25%;
+  bottom:-1px;
+  left:25%;
+  height:1px;
+  background:$accent;
+  box-shadow:0 0 9px rgba(102,217,232,.7);
+}
+
+.avid-character-view{
+  height:78.8vh;
+  display:grid;
+  grid-template-columns:minmax(420px,.92fr) minmax(540px,1.15fr) minmax(330px,.72fr);
+  gap:.75vw;
+}
+.avid-character-pockets{min-height:0}
+.avid-storage-view{
+  height:78.8vh;
+  display:grid;
+  grid-template-columns:minmax(470px,1.05fr) minmax(470px,1.05fr) minmax(330px,.72fr);
+  gap:.75vw;
+}
+
+.avid-avatar{
+  position:absolute;
+  top:3%;
+  bottom:4%;
+  left:2%;
+  width:47%;
+  min-width:130px;
+  pointer-events:none;
+  filter:drop-shadow(0 15px 26px rgba(0,0,0,.35));
+}
+.avid-avatar:before{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom:3%;
+  width:70%;
+  height:5%;
+  transform:translateX(-50%);
+  border-radius:50%;
+  background:rgba(0,0,0,.35);
+  filter:blur(8px);
+}
+.avid-avatar .avatar-head{
+  position:absolute;
+  top:5%;
+  left:50%;
+  width:31%;
+  height:15%;
+  transform:translateX(-50%);
+  border:1px solid rgba(102,217,232,.22);
+  border-radius:46% 46% 44% 44%;
+  background:linear-gradient(145deg,#8d6f5f,#5e463b);
+  box-shadow:inset -8px -6px 16px rgba(0,0,0,.18);
+}
+.avid-avatar .avatar-head i,
+.avid-avatar .avatar-head b{
+  position:absolute;
+  top:48%;
+  width:4px;
+  height:2px;
+  border-radius:2px;
+  background:rgba(8,14,17,.7);
+}
+.avid-avatar .avatar-head i{left:30%}
+.avid-avatar .avatar-head b{right:30%}
+.avid-avatar .avatar-hair{
+  position:absolute;
+  z-index:3;
+  top:4%;
+  left:50%;
+  width:32%;
+  height:8%;
+  transform:translateX(-50%);
+  border-radius:52% 52% 22% 22%;
+  background:#181b1d;
+}
+.avid-avatar .avatar-neck{
+  position:absolute;
+  z-index:1;
+  top:18%;
+  left:50%;
+  width:11%;
+  height:7%;
+  transform:translateX(-50%);
+  border-radius:4px;
+  background:#74584b;
+}
+.avid-avatar .avatar-torso{
+  position:absolute;
+  z-index:2;
+  top:22%;
+  left:50%;
+  width:54%;
+  height:39%;
+  transform:translateX(-50%);
+  clip-path:polygon(19% 0,81% 0,100% 100%,0 100%);
+  border:1px solid rgba(102,217,232,.2);
+  border-radius:10px 10px 18px 18px;
+  background:linear-gradient(160deg,#202a2f,#10181c);
+}
+.avid-avatar .avatar-torso span{
+  position:absolute;
+  top:12%;
+  left:50%;
+  width:1px;
+  height:72%;
+  background:rgba(102,217,232,.13);
+}
+.avid-avatar .avatar-arm{
+  position:absolute;
+  z-index:1;
+  top:25%;
+  width:13%;
+  height:39%;
+  border-radius:12px;
+  background:linear-gradient(180deg,#1d282d,#10171b);
+}
+.avid-avatar .avatar-arm.left{left:13%;transform:rotate(4deg)}
+.avid-avatar .avatar-arm.right{right:13%;transform:rotate(-4deg)}
+.avid-avatar .avatar-leg{
+  position:absolute;
+  top:59%;
+  width:20%;
+  height:34%;
+  border-radius:4px 4px 10px 10px;
+  background:linear-gradient(180deg,#172127,#0e1418);
+}
+.avid-avatar .avatar-leg.left{left:27%}
+.avid-avatar .avatar-leg.right{right:27%}
+.avid-avatar .avatar-shoe{
+  position:absolute;
+  bottom:2%;
+  width:25%;
+  height:7%;
+  border-radius:9px 12px 5px 5px;
+  background:#0a1013;
+  border:1px solid rgba(102,217,232,.12);
+}
+.avid-avatar .avatar-shoe.left{left:21%}
+.avid-avatar .avatar-shoe.right{right:21%}
+.avid-avatar>small{
+  position:absolute;
+  right:0;
+  bottom:0;
+  left:0;
+  overflow:hidden;
+  color:#7c949a;
+  font-size:.5rem;
+  text-align:center;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.avid-equipment button.is-compatible{
+  opacity:1!important;
+  border-color:$accent!important;
+  background:rgba(102,217,232,.075)!important;
+  box-shadow:inset 0 0 20px rgba(102,217,232,.06),0 0 12px rgba(102,217,232,.12);
+}
+.avid-equipment button.is-compatible small,
+.avid-equipment button.is-compatible span{color:#dffcff}
+.avid-item[draggable="true"]{cursor:grab}
+.avid-item[draggable="true"]:active{cursor:grabbing}
+.avid-cell.is-over{
+  border-color:$accent!important;
+  background:rgba(102,217,232,.12)!important;
+  box-shadow:inset 0 0 15px rgba(102,217,232,.08);
+}
+
+.avid-context-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:120;
+  background:transparent;
+}
+.avid-context-menu{
+  position:fixed;
+  z-index:121;
+  width:230px;
+  overflow:hidden;
+  padding:.45rem;
+  border:1px solid rgba(102,217,232,.34);
+  border-radius:7px;
+  background:rgba(5,13,17,.985);
+  box-shadow:0 18px 55px rgba(0,0,0,.48),inset 0 0 30px rgba(102,217,232,.025);
+  backdrop-filter:blur(14px);
+}
+.avid-context-head{
+  display:grid;
+  grid-template-columns:48px 1fr;
+  gap:.65rem;
+  align-items:center;
+  padding:.4rem .35rem .55rem;
+  border-bottom:1px solid rgba(102,217,232,.12);
+}
+.avid-context-head img{
+  width:48px;
+  height:48px;
+  object-fit:contain;
+}
+.avid-context-head strong{
+  display:block;
+  overflow:hidden;
+  font-family:Garamond,Georgia,serif;
+  font-size:.9rem;
+  font-weight:500;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.avid-context-head small{
+  display:block;
+  margin-top:.12rem;
+  overflow:hidden;
+  color:#607980;
+  font-size:.47rem;
+  text-transform:uppercase;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.avid-context-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:.25rem;
+  padding:.5rem .35rem;
+}
+.avid-context-meta span{
+  padding:.18rem .34rem;
+  border:1px solid rgba(102,217,232,.12);
+  border-radius:3px;
+  color:#779198;
+  background:rgba(102,217,232,.018);
+  font-size:.48rem;
+}
+.avid-context-menu>button{
+  width:100%;
+  min-height:33px;
+  margin-top:3px;
+  padding:0 .55rem;
+  border:1px solid transparent;
+  border-radius:4px;
+  background:rgba(255,255,255,.015);
+  color:#c9dfe2;
+  font-size:.58rem;
+  text-align:left;
+  text-transform:capitalize;
+  cursor:pointer;
+}
+.avid-context-menu>button:hover:not(:disabled){
+  border-color:rgba(102,217,232,.32);
+  background:rgba(102,217,232,.065);
+  color:#effdff;
+}
+.avid-context-menu>button:disabled{
+  opacity:.25;
+  cursor:default;
+}
+
+@media(max-width:1450px){
+  .avid-character-view{grid-template-columns:minmax(360px,.9fr) minmax(430px,1.12fr) minmax(300px,.72fr)}
+  .avid-storage-view{grid-template-columns:minmax(400px,1fr) minmax(400px,1fr) minmax(300px,.72fr)}
+}
