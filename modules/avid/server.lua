@@ -407,6 +407,55 @@ return function(Inventory)
         return { success = true, state = state(source) }
     end)
 
+    lib.callback.register('ox_inventory:avid:splitStack', function(source, data)
+        if type(data) ~= 'table' then return { success = false, error = 'invalid_payload' } end
+
+        local player = Inventory(source)
+        if not player then return { success = false, error = 'invalid_inventory' } end
+
+        local backpack = equippedBackpack(player)
+        local inv = data.from == 'backpack' and backpack or player
+
+        if not inv then return { success = false, error = 'invalid_inventory' } end
+
+        local slot = tonumber(data.slot)
+        local item = slot and inv.items[slot]
+
+        if not item then return { success = false, error = 'item_missing' } end
+        if item.avid and item.avid.equipped then return { success = false, error = 'unequip_first' } end
+        if (item.count or 1) <= 1 then return { success = false, error = 'stack_too_small' } end
+
+        local splitCount = math.floor(item.count / 2)
+        if splitCount < 1 then return { success = false, error = 'stack_too_small' } end
+
+        local placement = Spatial.FirstFit(inv, item.name)
+        if not placement then return { success = false, error = 'no_grid_space' } end
+
+        local targetSlot = Inventory.GetEmptySlot(inv)
+        if not targetSlot then return { success = false, error = 'inventory_full' } end
+
+        local metadata = table.clone(item.metadata or {})
+
+        -- Remove first so AddItem sees the correct current inventory weight.
+        local removed, removeErr = Inventory.RemoveItem(inv, item.name, splitCount, metadata, slot, false, true)
+        if not removed then return { success = false, error = removeErr or 'remove_failed' } end
+
+        local added, response = Inventory.AddItem(inv, item.name, splitCount, metadata, targetSlot)
+
+        if not added then
+            Inventory.AddItem(inv, item.name, splitCount, metadata, slot)
+            return { success = false, error = response or 'split_failed' }
+        end
+
+        local newSlot = type(response) == 'table' and response.slot or targetSlot
+        Spatial.SetGrid(inv, newSlot, placement.x, placement.y, false)
+
+        sync(inv, slot)
+        sync(inv, newSlot)
+
+        return { success = true, state = state(source) }
+    end)
+
     lib.callback.register('ox_inventory:avid:quickMove', function(source, data)
         if type(data) ~= 'table' then return { success = false, error = 'invalid_payload' } end
 
