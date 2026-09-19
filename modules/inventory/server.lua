@@ -1206,6 +1206,27 @@ function Inventory.AddItem(inv, item, count, metadata, slot, cb)
 
 	if not toSlot then return false, 'inventory_full' end
 
+	local addedWeight = 0
+
+	if type(toSlot) == 'number' then
+		addedWeight = Inventory.SlotWeight(item, {
+			count = slotCount,
+			metadata = slotMetadata,
+		})
+	else
+		for i = 1, #toSlot do
+			local data = toSlot[i]
+			addedWeight += Inventory.SlotWeight(item, {
+				count = data.count,
+				metadata = data.metadata,
+			})
+		end
+	end
+
+	if inv.maxWeight and addedWeight > 0 and inv.weight + addedWeight > inv.maxWeight then
+		return false, 'inventory_overweight'
+	end
+
 	local spatialOk, spatialPlan = AvidSpatial.PlanTargets(inv, item.name, toSlot)
 	if not spatialOk then return false, 'inventory_full' end
 
