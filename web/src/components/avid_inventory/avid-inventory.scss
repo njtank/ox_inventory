@@ -680,3 +680,421 @@ $line:rgba(102,217,232,.25);
   border-color:$accent;
   background:rgba(102,217,232,.075);
 }
+
+
+/* -------------------------------------------------------------------------- */
+/* Final Avid inventory hierarchy                                              */
+/* -------------------------------------------------------------------------- */
+
+.avid-ui{
+  padding:1.25vh 1.55vw 1vh!important;
+  background:
+    radial-gradient(circle at 50% 45%,rgba(2,8,11,.03),rgba(2,8,11,.10) 48%,rgba(2,8,11,.20) 100%),
+    linear-gradient(180deg,rgba(2,8,11,.08),rgba(2,8,11,.18))!important;
+}
+
+/* Slim, useful header. */
+.avid-top{
+  height:50px!important;
+  grid-template-columns:1fr auto auto!important;
+  gap:1rem;
+  padding:0 .15rem 0 .15rem;
+  border-bottom:1px solid rgba(102,217,232,.12);
+  background:linear-gradient(90deg,rgba(4,12,16,.20),rgba(4,12,16,.05),rgba(4,12,16,.16))!important;
+}
+.avid-brand strong{
+  font-size:1.45rem!important;
+  letter-spacing:.20em!important;
+}
+.avid-brand small{
+  margin-top:.08rem!important;
+  font-size:.42rem!important;
+  letter-spacing:.33em!important;
+}
+.avid-controls-hint{
+  display:flex;
+  align-items:center;
+  gap:.85rem;
+  color:rgba(128,155,162,.72);
+  font-size:.49rem;
+  white-space:nowrap;
+}
+.avid-controls-hint span{
+  display:flex;
+  align-items:center;
+  gap:.28rem;
+}
+.avid-controls-hint kbd,
+.avid-equipment-help kbd{
+  padding:.11rem .28rem;
+  border:1px solid rgba(102,217,232,.20);
+  border-radius:3px;
+  background:rgba(102,217,232,.025);
+  color:#cde9ec;
+  font:inherit;
+}
+.avid-top>button{
+  width:30px!important;
+  height:30px!important;
+  margin-left:.25rem;
+  font-size:1rem!important;
+}
+
+/* Main spatial hierarchy. */
+.avid-layout{
+  height:calc(100vh - 90px)!important;
+  margin-top:.75rem;
+  display:grid!important;
+  gap:.7vw!important;
+  align-items:start;
+}
+.avid-layout.has-storage{
+  grid-template-columns:230px minmax(560px,1.45fr) minmax(330px,.82fr)!important;
+}
+.avid-layout.no-storage{
+  grid-template-columns:230px minmax(620px,1fr)!important;
+}
+.avid-external-layout{
+  height:calc(100vh - 90px)!important;
+  margin-top:.75rem;
+  grid-template-columns:230px minmax(760px,1fr)!important;
+  gap:.7vw!important;
+}
+
+/* Equipment is now a compact rail, not a character showcase. */
+.avid-equipment-rail{
+  align-self:start;
+  display:flex;
+  flex-direction:column;
+  max-height:calc(100vh - 110px);
+  background:linear-gradient(180deg,rgba(8,19,25,.30),rgba(4,11,15,.37))!important;
+  backdrop-filter:none!important;
+}
+.avid-equipment-head{
+  min-height:57px!important;
+  padding:.62rem .72rem .52rem!important;
+  background:rgba(3,11,15,.24)!important;
+}
+.avid-equipment-head h2{
+  max-width:190px;
+  overflow:hidden;
+  font-size:.92rem!important;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.avid-equipment{
+  position:static!important;
+  width:auto!important;
+  flex:1;
+  display:flex!important;
+  flex-direction:column;
+  gap:5px!important;
+  padding:.55rem!important;
+}
+.avid-equipment button{
+  position:relative;
+  min-height:68px!important;
+  display:grid!important;
+  grid-template-columns:48px minmax(0,1fr)!important;
+  grid-template-rows:18px 1fr!important;
+  gap:0 .5rem!important;
+  padding:.42rem .48rem!important;
+  border-color:rgba(102,217,232,.12)!important;
+  background:rgba(5,15,20,.18)!important;
+  transition:transform .13s ease,border-color .13s ease,background .13s ease,opacity .13s ease!important;
+}
+.avid-equipment button small{
+  grid-column:1/-1!important;
+  color:#678087!important;
+  font-size:.43rem!important;
+  letter-spacing:.15em!important;
+}
+.avid-equipment button img{
+  width:46px!important;
+  height:38px!important;
+  object-fit:contain;
+}
+.avid-equipment button span{
+  align-self:center;
+  font-size:.56rem!important;
+}
+.avid-equipment button.has-item{
+  border-color:rgba(102,217,232,.23)!important;
+  background:
+    radial-gradient(circle at 22% 58%,rgba(102,217,232,.035),transparent 50%),
+    rgba(5,15,20,.24)!important;
+}
+.avid-equipment button.is-essential:hover,
+.avid-equipment button.has-item:hover{
+  transform:translateX(2px);
+  border-color:rgba(102,217,232,.62)!important;
+  background:rgba(102,217,232,.045)!important;
+}
+.avid-equipment button.is-combat.is-subdued{
+  opacity:.18!important;
+}
+.avid-equipment button.is-combat.is-subdued:hover,
+.avid-equipment button.is-combat.is-compatible{
+  opacity:1!important;
+}
+.avid-equipment button:nth-child(4){
+  margin-top:.38rem;
+}
+.avid-equipment button:nth-child(4):before{
+  content:"GEAR";
+  position:absolute;
+  top:-.48rem;
+  left:.15rem;
+  padding:0 .25rem;
+  background:rgba(5,13,17,.82);
+  color:rgba(102,217,232,.42);
+  font-size:.38rem;
+  letter-spacing:.18em;
+}
+.avid-equipment-help{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.35rem;
+  padding:.48rem .4rem .55rem;
+  border-top:1px solid rgba(102,217,232,.08);
+  color:#536d74;
+  font-size:.43rem;
+}
+.avid-equipment-help>span{
+  width:1px;
+  height:12px;
+  margin:0 .18rem;
+  background:rgba(102,217,232,.10);
+}
+
+/* Pockets become the hero surface. */
+.avid-grid-panel{
+  align-self:start;
+  background:linear-gradient(180deg,rgba(8,19,25,.31),rgba(4,11,15,.39))!important;
+  box-shadow:inset 0 0 35px rgba(0,0,0,.06),0 9px 24px rgba(0,0,0,.06)!important;
+}
+.avid-layout>.avid-grid-panel{
+  border-color:rgba(102,217,232,.31)!important;
+}
+.avid-grid-head{
+  min-height:66px!important;
+  display:grid!important;
+  grid-template-columns:minmax(150px,1fr) minmax(170px,240px) 120px;
+  gap:.75rem!important;
+  padding:.66rem .8rem .58rem!important;
+}
+.avid-grid-title{
+  min-width:0;
+}
+.avid-grid-title h2{
+  font-size:1rem!important;
+}
+.avid-grid-title p{
+  margin-top:.1rem!important;
+  font-size:.52rem!important;
+}
+.avid-grid-search{
+  height:30px;
+  align-self:center;
+  display:flex;
+  align-items:center;
+  gap:.4rem;
+  padding:0 .58rem;
+  border:1px solid rgba(102,217,232,.16);
+  border-radius:4px;
+  background:rgba(3,11,15,.26);
+}
+.avid-grid-search>span{
+  color:$accent;
+  font-size:.7rem;
+}
+.avid-grid-search input{
+  width:100%;
+  min-width:0;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:#d8edef;
+  font-size:.55rem;
+}
+.avid-grid-search input::placeholder{
+  color:#506970;
+}
+
+/* Weight gets a full-width visual cue instead of being microscopic. */
+.avid-weight{
+  width:120px!important;
+  align-self:center;
+}
+.avid-weight>div{
+  margin-bottom:.28rem!important;
+  font-size:.47rem!important;
+}
+.avid-weight>i{
+  height:3px!important;
+  background:rgba(255,255,255,.055)!important;
+}
+.avid-weight b{
+  background:$accent!important;
+  transition:background .18s ease,box-shadow .18s ease;
+}
+.avid-weight.is-heavy b{
+  background:#d9a55e!important;
+  box-shadow:0 0 8px rgba(217,165,94,.35)!important;
+}
+.avid-weight.is-full b{
+  background:#d97979!important;
+  box-shadow:0 0 8px rgba(217,121,121,.38)!important;
+}
+
+/* Cleaner spatial board. */
+.avid-grid{
+  margin:.6rem!important;
+  width:calc(100% - 1.2rem)!important;
+  gap:4px!important;
+  background:transparent!important;
+}
+.avid-cell{
+  border-color:rgba(102,217,232,.10)!important;
+  background:linear-gradient(145deg,rgba(8,21,27,.24),rgba(4,13,17,.16))!important;
+}
+.avid-grid.is-drag-target .avid-cell{
+  border-color:rgba(102,217,232,.15)!important;
+}
+.avid-item{
+  margin:1px!important;
+  border-color:rgba(102,217,232,.20)!important;
+  background:
+    radial-gradient(circle at 50% 38%,rgba(102,217,232,.032),transparent 58%),
+    linear-gradient(145deg,rgba(12,27,34,.60),rgba(6,16,21,.57))!important;
+  box-shadow:none!important;
+  transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease,opacity .12s ease!important;
+}
+.avid-item:hover,
+.avid-item.is-selected{
+  z-index:8;
+  transform:translateY(-2px);
+  border-color:rgba(102,217,232,.74)!important;
+  box-shadow:0 7px 18px rgba(0,0,0,.14),inset 0 0 18px rgba(102,217,232,.035)!important;
+}
+.avid-grid.is-drag-target .avid-item:hover{
+  border-color:$accent!important;
+  box-shadow:0 0 0 1px rgba(102,217,232,.24),0 0 15px rgba(102,217,232,.10)!important;
+}
+.avid-item img{
+  inset:8% 8% 20%!important;
+  width:84%!important;
+  height:72%!important;
+}
+.avid-item em{
+  top:.22rem!important;
+  right:.22rem!important;
+  min-width:20px;
+  padding:.11rem .26rem;
+  border:1px solid rgba(102,217,232,.26);
+  border-radius:999px;
+  background:rgba(4,15,19,.66);
+  color:#cfffff!important;
+  font-size:.44rem!important;
+  text-align:center;
+}
+.avid-item>span{
+  right:0!important;
+  bottom:0!important;
+  left:0!important;
+  padding:.42rem .36rem .28rem;
+  background:linear-gradient(180deg,transparent,rgba(2,9,12,.74));
+  color:#d9e8ea!important;
+  font-size:.48rem!important;
+}
+
+/* Right side only exists when there is something meaningful to show. */
+.avid-right{
+  align-self:start;
+  min-height:0;
+  display:flex!important;
+  flex-direction:column;
+  gap:.55rem!important;
+}
+.avid-right>.avid-grid-panel{
+  width:100%;
+}
+.avid-ground-panel{
+  width:100%;
+  min-height:190px!important;
+  height:auto!important;
+  background:linear-gradient(180deg,rgba(8,19,25,.29),rgba(4,11,15,.36))!important;
+}
+.avid-ground-panel .avid-panel-head{
+  min-height:56px!important;
+  padding:.55rem .7rem .45rem!important;
+}
+.avid-ground-panel .avid-panel-head p{
+  display:none;
+}
+
+/* External ox inventories stay compatible but visually sit under the Avid shell. */
+.avid-stock-transfer{
+  background:linear-gradient(180deg,rgba(8,19,25,.35),rgba(4,11,15,.44))!important;
+  backdrop-filter:none!important;
+}
+.avid-stock-transfer>.avid-panel-head{
+  min-height:58px!important;
+  padding:.6rem .75rem .5rem!important;
+}
+
+/* Context stays glassy and quiet. */
+.avid-context-menu{
+  width:238px!important;
+  border-color:rgba(102,217,232,.28)!important;
+  background:linear-gradient(180deg,rgba(7,18,24,.76),rgba(3,10,14,.80))!important;
+  box-shadow:0 16px 44px rgba(0,0,0,.20)!important;
+}
+.avid-context-head strong{
+  font-size:.82rem!important;
+}
+.avid-context-menu>button{
+  min-height:31px!important;
+}
+
+/* Retire every old character-preview visual. */
+.avid-character,
+.avid-character-body,
+.avid-live-character,
+.avid-avatar,
+.avid-person,
+.avid-no-bag,
+.avid-toolbar,
+.avid-top-title{
+  display:none!important;
+}
+
+.avid-footer{
+  height:24px!important;
+  align-items:center!important;
+  opacity:.55;
+  font-size:.40rem!important;
+}
+
+@media(max-width:1500px){
+  .avid-layout.has-storage{
+    grid-template-columns:205px minmax(500px,1.35fr) minmax(305px,.78fr)!important;
+  }
+  .avid-layout.no-storage{
+    grid-template-columns:205px minmax(560px,1fr)!important;
+  }
+  .avid-external-layout{
+    grid-template-columns:205px minmax(700px,1fr)!important;
+  }
+  .avid-controls-hint{
+    gap:.55rem;
+    font-size:.44rem;
+  }
+  .avid-grid-head{
+    grid-template-columns:minmax(130px,1fr) minmax(140px,190px) 104px;
+  }
+  .avid-equipment button{
+    min-height:61px!important;
+  }
+}
