@@ -206,6 +206,54 @@ return function(Inventory)
         return { success = ok == true, error = err, state = ok and state(source) or nil }
     end)
 
+    lib.callback.register('ox_inventory:avid:drop', function(source, data)
+        if type(data) ~= 'table' then return { success = false, error = 'invalid_payload' } end
+
+        local player = Inventory(source)
+        if not player then return { success = false, error = 'invalid_inventory' } end
+
+        local backpack = equippedBackpack(player)
+        local inv = data.from == 'pockets' and player or data.from == 'backpack' and backpack
+
+        if not inv then return { success = false, error = 'invalid_inventory' } end
+
+        local slot = tonumber(data.slot)
+        local item = slot and inv.items[slot]
+        if not item then return { success = false, error = 'item_missing' } end
+        if item.avid and item.avid.equipped then return { success = false, error = 'unequip_first' } end
+
+        local coords = data.coords
+        if type(coords) ~= 'table' or not coords.x or not coords.y or not coords.z then
+            return { success = false, error = 'invalid_drop_position' }
+        end
+
+        local count = math.max(1, math.min(math.floor(tonumber(data.count) or item.count), item.count))
+        local success, response = Inventory.DropFromInventory(
+            source,
+            inv,
+            slot,
+            count,
+            vec3(coords.x + 0.0, coords.y + 0.0, coords.z + 0.0),
+            Player(source).state.instance
+        )
+
+        if not success then
+            return { success = false, error = type(response) == 'string' and response or 'drop_failed' }
+        end
+
+        if backpack and inv == backpack then
+            local bag = equipped(player).backpack
+            local bagItem = bag and player.items[bag.slot]
+
+            if bagItem then
+                Inventory.ContainerWeight(bagItem, backpack.weight, player)
+                sync(player, bag.slot)
+            end
+        end
+
+        return { success = true, state = state(source) }
+    end)
+
     lib.callback.register('ox_inventory:avid:move', function(source, data)
         if type(data) ~= 'table' then return { success = false, error = 'invalid_payload' } end
 
