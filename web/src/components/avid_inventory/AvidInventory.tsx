@@ -103,9 +103,10 @@ const itemImage = (item: Pick<AvidItem, 'name' | 'metadata'>) => {
 
 const Weight: React.FC<{ value: number; max: number }> = ({ value, max }) => {
   const percent = max > 0 ? Math.min(100, (value / max) * 100) : 0;
+  const stateClass = percent >= 98 ? 'is-full' : percent >= 80 ? 'is-heavy' : '';
 
   return (
-    <div className="avid-weight">
+    <div className={'avid-weight ' + stateClass}>
       <div><span>{kg(value)}</span><span>{kg(max)}</span></div>
       <i><b style={{ width: `${percent}%` }} /></i>
     </div>
@@ -119,24 +120,37 @@ const Grid: React.FC<{
   kind: GridName;
   selected: Selection | null;
   search: string;
+  onSearch: (value: string) => void;
   dragging: DragPayload | null;
   onSelect: (selection: Selection) => void;
   onUse: (item: AvidItem, kind: GridName) => void;
   onQuickMove: (item: AvidItem, kind: GridName) => void;
   onPointerStart: (event: React.PointerEvent, payload: DragPayload, item: AvidItem) => void;
   onContext: (event: React.MouseEvent, item: AvidItem, kind: GridName) => void;
-}> = ({ title, subtitle, inventory, kind, selected, search, dragging, onSelect, onUse, onQuickMove, onPointerStart, onContext }) => {
+}> = ({ title, subtitle, inventory, kind, selected, search, onSearch, dragging, onSelect, onUse, onQuickMove, onPointerStart, onContext }) => {
   const cells = useMemo(() => Array.from({ length: inventory.cols * inventory.rows }), [inventory.cols, inventory.rows]);
   const query = search.trim().toLowerCase();
 
   return (
     <section className="avid-panel avid-grid-panel">
-      <header className="avid-panel-head">
-        <div>
+      <header className="avid-panel-head avid-grid-head">
+        <div className="avid-grid-title">
           <small>{kind === 'pockets' ? 'ON PERSON' : 'PORTABLE STORAGE'}</small>
           <h2>{title}</h2>
           <p>{subtitle}</p>
         </div>
+
+        {kind === 'pockets' && (
+          <label className="avid-grid-search">
+            <span>⌕</span>
+            <input
+              value={search}
+              onChange={(event) => onSearch(event.target.value)}
+              placeholder="Search inventory..."
+            />
+          </label>
+        )}
+
         <Weight value={inventory.weight} max={inventory.maxWeight} />
       </header>
 
@@ -224,72 +238,75 @@ const Grid: React.FC<{
   );
 };
 
-const Character: React.FC<{
+const EquipmentRail: React.FC<{
   state: AvidState;
   dragging: DragPayload | null;
   onUnequip: (slotName: string) => void;
   onPointerStart: (event: React.PointerEvent, payload: DragPayload, item: AvidItem) => void;
   onContext: (event: React.MouseEvent, item: AvidItem, equipmentSlot: string) => void;
 }> = ({ state, dragging, onUnequip, onPointerStart, onContext }) => {
-  const characterName = state.character?.name || 'Your Character';
+  const characterName = state.character?.name || 'Character';
 
   return (
-    <section className="avid-panel avid-character">
-      <header className="avid-panel-head">
+    <section className="avid-panel avid-equipment-rail">
+      <header className="avid-panel-head avid-equipment-head">
         <div>
-          <small>CHARACTER</small>
+          <small>EQUIPMENT</small>
           <h2>{characterName}</h2>
-          <p>Your live character and equipped essentials.</p>
         </div>
       </header>
 
-      <div className="avid-character-body">
-        <div className="avid-live-character">
-          <span>LIVE CHARACTER</span>
-          <small>Current face · clothing · hair · props</small>
-        </div>
+      <div className="avid-equipment">
+        {EQUIPMENT.map((slotName) => {
+          const equippedItem = state.equipment[slotName];
+          const sourceItem = dragging?.source === 'grid' && dragging.kind === 'pockets'
+            ? state.pockets.items.find((entry) => entry.slot === dragging.slot)
+            : undefined;
+          const compatible = Boolean(sourceItem?.compatibleEquipment?.includes(slotName));
+          const combatEmpty = COMBAT.has(slotName) && !equippedItem;
 
-        <div className="avid-equipment">
-          {EQUIPMENT.map((slotName) => {
-            const equippedItem = state.equipment[slotName];
-            const sourceItem = dragging?.source === 'grid' && dragging.kind === 'pockets'
-              ? state.pockets.items.find((entry) => entry.slot === dragging.slot)
-              : undefined;
-            const compatible = Boolean(sourceItem?.compatibleEquipment?.includes(slotName));
-            const combatEmpty = COMBAT.has(slotName) && !equippedItem;
+          return (
+            <button
+              key={slotName}
+              data-equipment-slot={slotName}
+              className={
+                (equippedItem ? 'has-item ' : '') +
+                (combatEmpty ? 'is-subdued ' : '') +
+                (compatible ? 'is-compatible ' : '') +
+                (COMBAT.has(slotName) ? 'is-combat ' : 'is-essential ')
+              }
+              onPointerDown={(event) => {
+                if (event.button !== 0 || !equippedItem) return;
 
-            return (
-              <button
-                key={slotName}
-                data-equipment-slot={slotName}
-                className={
-                  (equippedItem ? 'has-item ' : '') +
-                  (combatEmpty ? 'is-subdued ' : '') +
-                  (compatible ? 'is-compatible ' : '')
-                }
-                onPointerDown={(event) => {
-                  if (event.button !== 0 || !equippedItem) return;
+                onPointerStart(
+                  event,
+                  { source: 'equipment', slot: equippedItem.slot, rotated: false, equipmentSlot: slotName },
+                  equippedItem
+                );
+              }}
+              onContextMenu={(event) => equippedItem && onContext(event, equippedItem, slotName)}
+              onDoubleClick={() => equippedItem && onUnequip(slotName)}
+            >
+              <small>{state.equipmentSlots[slotName]?.label || slotName}</small>
 
-                  onPointerStart(
-                    event,
-                    { source: 'equipment', slot: equippedItem.slot, rotated: false, equipmentSlot: slotName },
-                    equippedItem
-                  );
-                }}
-                onContextMenu={(event) => equippedItem && onContext(event, equippedItem, slotName)}
-                onDoubleClick={() => equippedItem && onUnequip(slotName)}
-              >
-                <small>{state.equipmentSlots[slotName]?.label || slotName}</small>
-                {equippedItem
-                  ? <><img src={itemImage(equippedItem)} alt="" /><span>{equippedItem.label}</span></>
-                  : <span>{compatible ? 'Release to equip' : 'Empty'}</span>}
-              </button>
-            );
-          })}
-        </div>
+              {equippedItem ? (
+                <>
+                  <img src={itemImage(equippedItem)} alt="" />
+                  <span>{equippedItem.label}</span>
+                </>
+              ) : (
+                <span>{compatible ? 'Release to equip' : 'Empty'}</span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
-      <footer>Drag compatible items onto equipment slots. Double-click equipped items to return them to your pockets.</footer>
+      <div className="avid-equipment-help">
+        <kbd>RMB</kbd> options
+        <span />
+        <kbd>2×</kbd> unequip
+      </div>
     </section>
   );
 };
@@ -831,6 +848,7 @@ const AvidInventory: React.FC = () => {
   const gridProps = {
     selected,
     search,
+    onSearch: setSearch,
     dragging,
     onSelect: setSelected,
     onUse: useItem,
@@ -839,8 +857,8 @@ const AvidInventory: React.FC = () => {
     onContext: openContext,
   };
 
-  const characterPanel = state ? (
-    <Character
+  const equipmentPanel = state ? (
+    <EquipmentRail
       state={state}
       dragging={dragging}
       onUnequip={unequip}
@@ -852,18 +870,12 @@ const AvidInventory: React.FC = () => {
   const backpackPanel = state?.backpack ? (
     <Grid
       title={state.backpack.label || 'Backpack'}
-      subtitle="A separate physical container tied to the bag you equipped."
+      subtitle="Portable storage"
       inventory={state.backpack}
       kind="backpack"
       {...gridProps}
     />
-  ) : (
-    <section className="avid-panel avid-no-bag">
-      <div>▱</div>
-      <h2>No bag equipped</h2>
-      <p>Drag a backpack from your pockets onto the Bag equipment slot.</p>
-    </section>
-  );
+  ) : null;
 
   const groundPanel = state?.ground ? (
     <GroundPanel
@@ -879,31 +891,25 @@ const AvidInventory: React.FC = () => {
     <>
       <div className="avid-ui" onContextMenu={(event) => event.preventDefault()}>
         <header className="avid-top">
-          <div>
+          <div className="avid-brand">
             <strong>AVID RP</strong>
             <small>MORE THAN A CITY</small>
           </div>
-          <div className="avid-top-title">INVENTORY</div>
-          <button onClick={() => fetchNui('exit')}>×</button>
-        </header>
 
-        <div className="avid-toolbar">
-          <label>
-            <span>⌕</span>
-            <input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search what you're carrying..."
-            />
-          </label>
-          <div><kbd>ALT + CLICK</kbd> Quick move · <kbd>RMB</kbd> Item menu · Double-click Use · Drag anywhere</div>
-        </div>
+          <div className="avid-controls-hint">
+            <span><kbd>ALT + CLICK</kbd> Quick move</span>
+            <span><kbd>RMB</kbd> Item menu</span>
+            <span><kbd>2×</kbd> Use</span>
+          </div>
+
+          <button aria-label="Close inventory" onClick={() => fetchNui('exit')}>×</button>
+        </header>
 
         {!state ? (
           <div className="avid-loading">Loading Avid inventory…</div>
         ) : externalOpen ? (
           <div className="avid-external-layout">
-            {characterPanel}
+            {equipmentPanel}
 
             <section className="avid-panel avid-stock-transfer">
               <header className="avid-panel-head">
@@ -921,22 +927,23 @@ const AvidInventory: React.FC = () => {
             </section>
           </div>
         ) : (
-          <div className="avid-layout">
-            {characterPanel}
+          <div className={'avid-layout ' + ((state.backpack || state.ground) ? 'has-storage' : 'no-storage')}>
+            {equipmentPanel}
 
             <Grid
               title="Pockets"
-              subtitle="The things you can actually carry on your person."
+              subtitle="What you are carrying right now."
               inventory={state.pockets}
               kind="pockets"
               {...gridProps}
             />
 
-            <div className="avid-right">
-              {backpackPanel}
-
-              {groundPanel}
-            </div>
+            {(state.backpack || state.ground) && (
+              <div className="avid-right">
+                {backpackPanel}
+                {groundPanel}
+              </div>
+            )}
           </div>
         )}
 
