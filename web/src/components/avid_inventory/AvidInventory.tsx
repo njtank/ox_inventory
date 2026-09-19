@@ -176,6 +176,8 @@ const Grid: React.FC<{
             return (
               <button
                 key={entry.slot}
+                data-item-kind={kind}
+                data-item-slot={entry.slot}
                 className={
                   'avid-item ' +
                   (selected?.kind === kind && selected.slot === entry.slot ? 'is-selected ' : '') +
@@ -352,10 +354,18 @@ const ContextMenu: React.FC<{
   onGive: () => void;
   onDrop: () => void;
   onQuickMove: () => void;
-  onSplit: () => void;
+  onSplit: (amount: number) => void;
   onEquip: (slot: string) => void;
   onUnequip: () => void;
 }> = ({ context, onClose, onUse, onGive, onDrop, onQuickMove, onSplit, onEquip, onUnequip }) => {
+  const maxSplit = context ? Math.max(1, context.item.count - 1) : 1;
+  const [splitAmount, setSplitAmount] = useState(1);
+
+  useEffect(() => {
+    if (!context) return;
+    setSplitAmount(Math.max(1, Math.floor(context.item.count / 2)));
+  }, [context?.item.slot, context?.item.count, context?.kind]);
+
   if (!context) return null;
 
   const equipment = context.item.compatibleEquipment || [];
@@ -393,7 +403,22 @@ const ContextMenu: React.FC<{
             <button onClick={onQuickMove}>
               {context.kind === 'pockets' ? 'Move to backpack' : 'Move to pockets'}
             </button>
-            {context.item.count > 1 && <button onClick={onSplit}>Split Stack</button>}
+            {context.item.count > 1 && (
+              <div className="avid-split-control">
+                <div>
+                  <span>Split Stack</span>
+                  <strong>{splitAmount} / {context.item.count}</strong>
+                </div>
+                <input
+                  type="range"
+                  min={1}
+                  max={maxSplit}
+                  value={splitAmount}
+                  onChange={(event) => setSplitAmount(Number(event.target.value))}
+                />
+                <button onClick={() => onSplit(splitAmount)}>Split {splitAmount}</button>
+              </div>
+            )}
             <button className="is-drop" onClick={onDrop}>Drop on ground</button>
 
             {context.kind === 'pockets' && equipment.map((slot) => (
@@ -495,12 +520,15 @@ const AvidInventory: React.FC = () => {
     setContext(null);
   }, [refresh, show]);
 
-  const splitStack = useCallback(async (entry: AvidItem, kind: GridName) => {
+  const splitStack = useCallback(async (entry: AvidItem, kind: GridName, amount: number) => {
     if ((entry.count || 1) <= 1) return;
+
+    const count = Math.max(1, Math.min(Math.floor(amount), entry.count - 1));
 
     const result = await fetchNui<ActionResponse>('avid:splitStack', {
       from: kind,
       slot: entry.slot,
+      count,
     });
 
     if (!result?.success) return show(result?.error || 'Unable to split stack');
@@ -508,6 +536,26 @@ const AvidInventory: React.FC = () => {
     if (result.state) setState(result.state); else void refresh();
     setSelected(null);
     setContext(null);
+  }, [refresh, show]);
+
+  const mergeStack = useCallback(async (
+    payload: DragPayload,
+    targetKind: GridName,
+    targetSlot: number
+  ) => {
+    if (payload.source !== 'grid' || !payload.kind) return;
+
+    const result = await fetchNui<ActionResponse>('avid:mergeStack', {
+      from: payload.kind,
+      fromSlot: payload.slot,
+      to: targetKind,
+      toSlot: targetSlot,
+    });
+
+    if (!result?.success) return show(result?.error || 'Unable to combine stacks');
+
+    if (result.state) setState(result.state); else void refresh();
+    setSelected(null);
   }, [refresh, show]);
 
   const quickMove = useCallback(async (entry: AvidItem, kind: GridName) => {
@@ -639,7 +687,7 @@ const AvidInventory: React.FC = () => {
     if (kind !== 'equipment') setSelected({ kind, slot: entry.slot });
 
     const width = 230;
-    const height = 370;
+    const height = 455;
     const x = Math.min(event.clientX, window.innerWidth - width - 12);
     const y = Math.min(event.clientY, window.innerHeight - height - 12);
 
@@ -693,6 +741,7 @@ const AvidInventory: React.FC = () => {
       const element = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement | null;
       const equipment = element?.closest<HTMLElement>('[data-equipment-slot]');
       const groundSlot = element?.closest<HTMLElement>('[data-ground-slot]');
+      const targetItem = element?.closest<HTMLElement>('[data-item-kind][data-item-slot]');
 
       if (equipment) {
         const slotName = equipment.dataset.equipmentSlot;
@@ -700,6 +749,17 @@ const AvidInventory: React.FC = () => {
       } else if (groundSlot && session.payload.source === 'grid') {
         const toSlot = Number(groundSlot.dataset.groundSlot);
         if (toSlot > 0) void gridToGround(session.payload, toSlot);
+      } else if (targetItem && session.payload.source === 'grid') {
+        const targetKind = targetItem.dataset.itemKind as GridName;
+        const targetSlot = Number(targetItem.dataset.itemSlot);
+
+        if (
+          (targetKind === 'pockets' || targetKind === 'backpack') &&
+          targetSlot > 0 &&
+          !(session.payload.kind === targetKind && session.payload.slot === targetSlot)
+        ) {
+          void mergeStack(session.payload, targetKind, targetSlot);
+        }
       } else {
         const grids = Array.from(document.querySelectorAll<HTMLElement>('[data-grid-container]'));
 
@@ -745,7 +805,7 @@ const AvidInventory: React.FC = () => {
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
     };
-  }, [dropOnGrid, equipDrop, gridToGround, groundToGrid]);
+  }, [dropOnGrid, equipDrop, gridToGround, groundToGrid, mergeStack]);
 
   useEffect(() => {
     const listener = (event: KeyboardEvent) => {
@@ -918,9 +978,9 @@ const AvidInventory: React.FC = () => {
               void quickMove(context.item, context.kind);
             }
           }}
-          onSplit={() => {
+          onSplit={(amount) => {
             if (context && context.kind !== 'equipment') {
-              void splitStack(context.item, context.kind);
+              void splitStack(context.item, context.kind, amount);
             }
           }}
           onEquip={(slot) => {
