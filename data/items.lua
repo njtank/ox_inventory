@@ -64,6 +64,30 @@ return {
 		}
 	},
 
+	['backpack_small'] = {
+		label = 'Small Backpack',
+		weight = 900,
+		stack = false,
+		close = true,
+		description = 'A compact everyday backpack.'
+	},
+
+	['backpack_medium'] = {
+		label = 'Backpack',
+		weight = 1300,
+		stack = false,
+		close = true,
+		description = 'A practical backpack for everyday carry.'
+	},
+
+	['backpack_large'] = {
+		label = 'Large Backpack',
+		weight = 1900,
+		stack = false,
+		close = true,
+		description = 'A larger backpack for work, travel, or long days in the city.'
+	},
+
 	['black_money'] = {
 		label = 'Dirty Money',
 	},
