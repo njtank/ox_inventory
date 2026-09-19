@@ -1,27 +1,11 @@
 local previewPed
 local previewActive = false
 
-local function cameraVectors()
-    local rot = GetGameplayCamRot(2)
-    local rx = math.rad(rot.x)
-    local rz = math.rad(rot.z)
-    local cosX = math.abs(math.cos(rx))
-
-    local forward = vec3(
-        -math.sin(rz) * cosX,
-        math.cos(rz) * cosX,
-        math.sin(rx)
-    )
-
-    local right = vec3(math.cos(rz), math.sin(rz), 0.0)
-
-    return rot, forward, right
-end
-
 local function stopPreview()
     previewActive = false
 
     if previewPed and DoesEntityExist(previewPed) then
+        SetEntityAsMissionEntity(previewPed, true, true)
         DeleteEntity(previewPed)
     end
 
@@ -34,39 +18,38 @@ local function startPreview()
     local ped = cache.ped
     if not ped or ped == 0 or not DoesEntityExist(ped) or cache.vehicle then return end
 
-    previewPed = ClonePed(ped, false, false, true)
-    if not previewPed or previewPed == 0 then return end
+    previewPed = ClonePed(ped, GetEntityHeading(ped), false, true)
+    if not previewPed or previewPed == 0 or not DoesEntityExist(previewPed) then return end
 
     previewActive = true
 
+    SetEntityAsMissionEntity(previewPed, true, true)
     SetEntityInvincible(previewPed, true)
     SetEntityCollision(previewPed, false, false)
     SetBlockingOfNonTemporaryEvents(previewPed, true)
     SetPedCanRagdoll(previewPed, false)
     SetPedCanBeTargetted(previewPed, false)
+    SetEntityVisible(previewPed, true, false)
+    SetEntityAlpha(previewPed, 255, false)
+    SetEntityAlwaysPrerender(previewPed, true)
+    SetEntityLodDist(previewPed, 0xFFFF)
     RemoveAllPedWeapons(previewPed, true)
+    ClearPedTasksImmediately(previewPed)
     FreezeEntityPosition(previewPed, true)
 
     CreateThread(function()
         while previewActive and previewPed and DoesEntityExist(previewPed) do
-            local camPos = GetGameplayCamCoord()
-            local rot, forward, right = cameraVectors()
-
-            -- Keep the exact player appearance framed in the left character pane
-            -- while preserving the player's existing world view.
-            local distance = 2.75
-            local horizontal = -0.78
-            local vertical = -1.20
-
-            local pos = vec3(
-                camPos.x + forward.x * distance + right.x * horizontal,
-                camPos.y + forward.y * distance + right.y * horizontal,
-                camPos.z + forward.z * distance + vertical
-            )
+            -- Place the clone by screen position instead of world/camera guesswork.
+            -- 0.155 / 0.82 puts the ped's feet near the bottom of the character pane.
+            local nearPoint, normal = GetWorldCoordFromScreenCoord(0.155, 0.82)
+            local depth = 2.35
+            local pos = nearPoint + normal * depth
+            local camRot = GetGameplayCamRot(2)
 
             SetEntityCoordsNoOffset(previewPed, pos.x, pos.y, pos.z, false, false, false)
-            SetEntityHeading(previewPed, rot.z + 180.0)
+            SetEntityHeading(previewPed, camRot.z + 180.0)
             SetEntityVisible(previewPed, true, false)
+            SetEntityAlpha(previewPed, 255, false)
             FreezeEntityPosition(previewPed, true)
 
             HideHudAndRadarThisFrame()
