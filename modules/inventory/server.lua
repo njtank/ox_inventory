@@ -1653,6 +1653,7 @@ local function dropItem(source, playerInventory, fromData, data)
 	local toData = table.clone(fromData)
 	toData.slot = data.toSlot
 	toData.count = data.count
+	toData.avid = nil
 	toData.weight = Inventory.SlotWeight(Items(toData.name), toData)
 
     if toData.weight > shared.dropweight then return end
