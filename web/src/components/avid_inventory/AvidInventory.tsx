@@ -83,13 +83,13 @@ type PointerSession = {
 
 const EQUIPMENT = ['phone', 'radio', 'backpack', 'armor', 'primary', 'secondary', 'melee'];
 const COMBAT = new Set(['armor', 'primary', 'secondary', 'melee']);
-const kg = (grams = 0) => \`\${(grams / 1000).toFixed(1)} kg\`;
+const kg = (grams = 0) => `${(grams / 1000).toFixed(1)} kg`;
 
 const itemImage = (item: Pick<AvidItem, 'name' | 'metadata'>) => {
   try {
     return getItemUrl({ name: item.name, metadata: item.metadata || {} } as any);
   } catch {
-    return \`nui://ox_inventory/web/images/\${item.name}.png\`;
+    return `nui://ox_inventory/web/images/${item.name}.png`;
   }
 };
 
@@ -99,7 +99,7 @@ const Weight: React.FC<{ value: number; max: number }> = ({ value, max }) => {
   return (
     <div className="avid-weight">
       <div><span>{kg(value)}</span><span>{kg(max)}</span></div>
-      <i><b style={{ width: \`\${percent}%\` }} /></i>
+      <i><b style={{ width: `${percent}%` }} /></i>
     </div>
   );
 };
@@ -134,8 +134,8 @@ const Grid: React.FC<{
       <div
         className={'avid-grid ' + (dragging ? 'is-drag-target' : '')}
         style={{
-          gridTemplateColumns: \`repeat(\${inventory.cols}, 1fr)\`,
-          gridTemplateRows: \`repeat(\${inventory.rows}, 1fr)\`,
+          gridTemplateColumns: `repeat(${inventory.cols}, 1fr)`,
+          gridTemplateRows: `repeat(${inventory.rows}, 1fr)`,
         }}
       >
         {cells.map((_, index) => {
@@ -170,8 +170,8 @@ const Grid: React.FC<{
                   (isDragging ? 'is-dragging ' : '')
                 }
                 style={{
-                  gridColumn: \`\${grid.x} / span \${entry.width}\`,
-                  gridRow: \`\${grid.y} / span \${entry.height}\`,
+                  gridColumn: `${grid.x} / span ${entry.width}`,
+                  gridRow: `${grid.y} / span ${entry.height}`,
                 }}
                 onPointerDown={(event) => {
                   if (event.button !== 0) return;
@@ -287,7 +287,7 @@ const Details: React.FC<{
       <div>
         <small>ITEM</small>
         <h2>{item?.label || 'Nothing selected'}</h2>
-        <p>{item ? \`\${item.width}x\${item.height} footprint · \${kg(item.weight)}\` : 'Select an item to inspect it.'}</p>
+        <p>{item ? `${item.width}x${item.height} footprint · ${kg(item.weight)}` : 'Select an item to inspect it.'}</p>
       </div>
     </header>
 
