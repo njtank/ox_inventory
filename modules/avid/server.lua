@@ -407,6 +407,80 @@ return function(Inventory)
         return { success = true, state = state(source) }
     end)
 
+    lib.callback.register('ox_inventory:avid:quickMove', function(source, data)
+        if type(data) ~= 'table' then return { success = false, error = 'invalid_payload' } end
+
+        local player = Inventory(source)
+        if not player then return { success = false, error = 'invalid_inventory' } end
+
+        local backpack = equippedBackpack(player)
+        local fromName = data.from == 'backpack' and 'backpack' or 'pockets'
+        local toName = fromName == 'pockets' and 'backpack' or 'pockets'
+        local fromInv = fromName == 'pockets' and player or backpack
+        local toInv = toName == 'pockets' and player or backpack
+
+        if not fromInv then return { success = false, error = 'invalid_inventory' } end
+        if not toInv then return { success = false, error = 'no_backpack_equipped' } end
+
+        local slot = tonumber(data.slot)
+        local item = slot and fromInv.items[slot]
+
+        if not item then return { success = false, error = 'item_missing' } end
+        if item.avid and item.avid.equipped then return { success = false, error = 'unequip_first' } end
+        if toName == 'backpack' and item.name:find('^backpack_') then
+            return { success = false, error = 'nested_backpacks_disabled' }
+        end
+
+        -- Quick move transfers the full stack. Check exact destination weight before
+        -- touching the source inventory so failed moves never disturb item placement.
+        if toInv.maxWeight and toInv.weight + (item.weight or 0) > toInv.maxWeight then
+            return { success = false, error = 'inventory_overweight' }
+        end
+
+        local placement = Spatial.FirstFit(toInv, item.name)
+        if not placement then return { success = false, error = 'no_grid_space' } end
+
+        local targetSlot = Inventory.GetEmptySlot(toInv)
+        if not targetSlot then return { success = false, error = 'inventory_full' } end
+
+        local count = item.count
+        local metadata = table.clone(item.metadata or {})
+        local oldGrid = item.avid and item.avid.grid and table.clone(item.avid.grid)
+
+        local removed, removeErr = Inventory.RemoveItem(fromInv, item.name, count, metadata, slot, false, true)
+        if not removed then return { success = false, error = removeErr or 'remove_failed' } end
+
+        local added, response = Inventory.AddItem(toInv, item.name, count, metadata, targetSlot)
+
+        if not added then
+            local restored, restoreResponse = Inventory.AddItem(fromInv, item.name, count, metadata, slot)
+
+            if restored and oldGrid then
+                local restoredSlot = type(restoreResponse) == 'table' and restoreResponse.slot or slot
+                Spatial.SetGrid(fromInv, restoredSlot, oldGrid.x, oldGrid.y, false)
+                sync(fromInv, restoredSlot)
+            end
+
+            return { success = false, error = response or 'add_failed' }
+        end
+
+        local newSlot = type(response) == 'table' and response.slot or targetSlot
+        Spatial.SetGrid(toInv, newSlot, placement.x, placement.y, false)
+        sync(toInv, newSlot)
+
+        if backpack and (fromInv == backpack or toInv == backpack) then
+            local bag = equipped(player).backpack
+            local bagItem = bag and player.items[bag.slot]
+
+            if bagItem then
+                Inventory.ContainerWeight(bagItem, backpack.weight, player)
+                sync(player, bag.slot)
+            end
+        end
+
+        return { success = true, state = state(source) }
+    end)
+
     lib.callback.register('ox_inventory:avid:move', function(source, data)
         if type(data) ~= 'table' then return { success = false, error = 'invalid_payload' } end
 
@@ -429,7 +503,11 @@ return function(Inventory)
             return { success = false, error = 'nested_backpacks_disabled' }
         end
 
-        local ok, err = Spatial.CanPlace(toInv, item.name, tonumber(data.x), tonumber(data.y), data.rotated == true)
+        if toInv.maxWeight and toInv.weight + (item.weight or 0) > toInv.maxWeight then
+            return { success = false, error = 'inventory_overweight' }
+        end
+
+        local ok, err = Spatial.CanPlace(toInv, item.name, tonumber(data.x), tonumber(data.y), false)
         if not ok then return { success = false, error = err } end
 
         local targetSlot = Inventory.GetEmptySlot(toInv)
@@ -449,7 +527,7 @@ return function(Inventory)
         end
 
         local newSlot = type(response) == 'table' and response.slot or targetSlot
-        Spatial.SetGrid(toInv, newSlot, tonumber(data.x), tonumber(data.y), data.rotated == true)
+        Spatial.SetGrid(toInv, newSlot, tonumber(data.x), tonumber(data.y), false)
         sync(toInv, newSlot)
 
         if backpack and (fromInv == backpack or toInv == backpack) then
