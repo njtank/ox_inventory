@@ -390,7 +390,8 @@ local function minimal(inv)
 				name = v.name,
 				count = v.count,
 				slot = k,
-				metadata = next(v.metadata) and v.metadata or nil
+				metadata = next(v.metadata) and v.metadata or nil,
+				avid = v.avid
 			}
 		end
 	end
@@ -398,6 +399,7 @@ local function minimal(inv)
 end
 
 local Items = require 'modules.items.server'
+local AvidSpatial = require 'modules.avid.spatial'
 
 ---@param inv inventory
 ---@param item table | string
@@ -421,6 +423,7 @@ function Inventory.SetSlot(inv, item, count, metadata, slot)
     end
 
 	local currentSlot = inv.items[slot]
+	local avidState = currentSlot and currentSlot.avid
 	local newCount = currentSlot and currentSlot.count + count or count
 	local newWeight = currentSlot and inv.weight - currentSlot.weight or inv.weight
 
@@ -428,7 +431,7 @@ function Inventory.SetSlot(inv, item, count, metadata, slot)
 		TriggerClientEvent('ox_inventory:itemNotify', inv.id, { currentSlot, 'ui_removed', currentSlot.count })
 		currentSlot = nil
 	else
-		currentSlot = {name = item.name, label = item.label, weight = item.weight, slot = slot, count = newCount, description = item.description, metadata = metadata, stack = item.stack, close = item.close}
+		currentSlot = {name = item.name, label = item.label, weight = item.weight, slot = slot, count = newCount, description = item.description, metadata = metadata, stack = item.stack, close = item.close, avid = avidState}
 		local slotWeight = Inventory.SlotWeight(item, currentSlot)
 		currentSlot.weight = slotWeight
 		newWeight += slotWeight
@@ -649,6 +652,7 @@ function Inventory.Create(id, label, invType, slots, weight, maxWeight, owner, i
 	end
 
 	Inventories[self.id] = setmetatable(self, OxInventory)
+	AvidSpatial.Normalize(Inventories[self.id])
 	return Inventories[self.id]
 end
 
@@ -736,7 +740,8 @@ function Inventory.Save(inv)
                 name = v.name,
                 count = v.count,
                 slot = k,
-                metadata = next(v.metadata) and v.metadata or nil
+                metadata = next(v.metadata) and v.metadata or nil,
+                avid = v.avid
             }
         end
     end
@@ -884,7 +889,7 @@ function Inventory.Load(id, invType, owner)
 				v.metadata = Items.CheckMetadata(v.metadata or {}, item, v.name, ostime)
 				local slotWeight = Inventory.SlotWeight(item, v)
 				weight += slotWeight
-				returnData[v.slot] = {name = item.name, label = item.label, weight = slotWeight, slot = v.slot, count = v.count, description = item.description, metadata = v.metadata, stack = item.stack, close = item.close}
+				returnData[v.slot] = {name = item.name, label = item.label, weight = slotWeight, slot = v.slot, count = v.count, description = item.description, metadata = v.metadata, stack = item.stack, close = item.close, avid = v.avid}
 			end
 		end
 	end
@@ -1201,12 +1206,16 @@ function Inventory.AddItem(inv, item, count, metadata, slot, cb)
 
 	if not toSlot then return false, 'inventory_full' end
 
+	local spatialOk, spatialPlan = AvidSpatial.PlanTargets(inv, item.name, toSlot)
+	if not spatialOk then return false, 'inventory_full' end
+
 	inv.changed = true
 
 	local toSlotType = type(toSlot)
 
 	if toSlotType == 'number' then
 		Inventory.SetSlot(inv, item, slotCount, slotMetadata, toSlot)
+		AvidSpatial.ApplyTarget(inv, toSlot, spatialPlan)
 
 		if inv.player and server.syncInventory then
 			server.syncInventory(inv)
@@ -1232,6 +1241,7 @@ function Inventory.AddItem(inv, item, count, metadata, slot, cb)
 			local data = toSlot[i]
 			added += data.count
 			Inventory.SetSlot(inv, item, data.count, data.metadata, data.slot)
+			AvidSpatial.ApplyTarget(inv, data.slot, spatialPlan)
 			toSlot[i] = { item = inv.items[data.slot], inventory = inv.id }
 		end
 
@@ -1485,11 +1495,17 @@ function Inventory.CanCarryItem(inv, item, count, metadata)
 			if next(itemSlots) or emptySlots > 0 then
 				if not count then count = 1 end
 				if not item.stack and emptySlots < count then return false end
-				if weight == 0 then return true end
 
 				local newWeight = inv.weight + (weight * count)
 
-				if newWeight > inv.maxWeight then
+				if weight ~= 0 and newWeight > inv.maxWeight then
+					return false
+				end
+
+				local existingStack = item.stack and next(itemSlots) ~= nil
+				local recordsNeeded = item.stack and (existingStack and 0 or 1) or count
+
+				if not AvidSpatial.CanFitRecords(inv, item.name, recordsNeeded) then
 					return false
 				end
 
