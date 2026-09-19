@@ -1098,3 +1098,34 @@ $line:rgba(102,217,232,.25);
     min-height:61px!important;
   }
 }
+
+
+/* Keep the Avid inventory footprint stable whether portable storage exists or not. */
+.avid-layout{
+  grid-template-columns:230px minmax(560px,1.45fr) minmax(330px,.82fr)!important;
+}
+.avid-layout.has-storage,
+.avid-layout.no-storage{
+  grid-template-columns:230px minmax(560px,1.45fr) minmax(330px,.82fr)!important;
+}
+.avid-right{
+  animation:avid-storage-reveal 240ms cubic-bezier(.2,.75,.25,1) both;
+  transform-origin:top right;
+}
+@keyframes avid-storage-reveal{
+  from{
+    opacity:0;
+    transform:translateX(18px) scale(.985);
+  }
+  to{
+    opacity:1;
+    transform:translateX(0) scale(1);
+  }
+}
+@media(max-width:1500px){
+  .avid-layout,
+  .avid-layout.has-storage,
+  .avid-layout.no-storage{
+    grid-template-columns:205px minmax(500px,1.35fr) minmax(305px,.78fr)!important;
+  }
+}
