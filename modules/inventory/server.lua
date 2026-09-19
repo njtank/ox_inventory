@@ -1719,6 +1719,29 @@ local function dropItem(source, playerInventory, fromData, data)
 	}
 end
 
+function Inventory.DropFromInventory(source, inv, slot, count, coords, instance)
+    inv = Inventory(inv)
+
+    if not inv or not coords then return false, 'invalid_inventory' end
+
+    slot = tonumber(slot)
+    local item = slot and inv.items[slot]
+    if not item then return false, 'item_missing' end
+
+    count = math.max(1, math.min(math.floor(tonumber(count) or item.count), item.count))
+
+    return dropItem(source, inv, item, {
+        fromSlot = slot,
+        toSlot = 1,
+        fromType = inv.type,
+        toType = 'newdrop',
+        count = count,
+        coords = coords,
+        instance = instance,
+    })
+end
+exports('DropFromInventory', Inventory.DropFromInventory)
+
 local GetLocks = require 'modules.locks'
 
 ---@param source number
