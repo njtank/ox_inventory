@@ -602,3 +602,15 @@ $line:rgba(102,217,232,.25);
 .avid-live-character{
   background:radial-gradient(ellipse at 40% 46%,rgba(102,217,232,.018),transparent 55%);
 }
+
+
+/* Match context menu transparency to the rest of the Avid glass UI. */
+.avid-context-menu{
+  background:linear-gradient(180deg,rgba(8,19,25,.34),rgba(4,11,15,.42))!important;
+  backdrop-filter:none!important;
+  box-shadow:0 16px 42px rgba(0,0,0,.18),inset 0 0 22px rgba(102,217,232,.018)!important;
+}
+.avid-context-backdrop{
+  background:transparent!important;
+  backdrop-filter:none!important;
+}
