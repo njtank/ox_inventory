@@ -89,17 +89,23 @@ local function occupy(occupied, name, placement)
 end
 
 local function firstFit(layout, occupied, name)
-    for _, rotated in ipairs({ false, true }) do
-        local size = Spatial.GetItemSize(name, rotated)
+    local size = Spatial.GetItemSize(name, false)
 
-        for y = 1, layout.rows - size.h + 1 do
-            for x = 1, layout.cols - size.w + 1 do
-                if canPlace(layout, occupied, name, x, y, rotated) then
-                    return { x = x, y = y, rotated = rotated }
-                end
+    for y = 1, layout.rows - size.h + 1 do
+        for x = 1, layout.cols - size.w + 1 do
+            if canPlace(layout, occupied, name, x, y, false) then
+                return { x = x, y = y, rotated = false }
             end
         end
     end
+end
+
+function Spatial.FirstFit(inv, name, ignoreSlot)
+    local layout = Spatial.GetLayout(inv)
+    if not layout then return end
+
+    Spatial.Normalize(inv)
+    return firstFit(layout, occupancy(inv, layout, ignoreSlot), name)
 end
 
 function Spatial.Normalize(inv)
