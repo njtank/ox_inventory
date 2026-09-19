@@ -210,6 +210,32 @@ function Spatial.Unequip(inv, slot)
     return true
 end
 
+function Spatial.UnequipToGrid(inv, slot, x, y, rotated)
+    local layout = Spatial.GetLayout(inv)
+    local item = inv.items and inv.items[slot]
+    if not layout or not item then return false, 'item_missing' end
+
+    local avid = state(item)
+    local previousEquipment = avid.equipped
+    avid.equipped = nil
+
+    local ok, reason = canPlace(layout, occupancy(inv, layout, slot), item.name, x, y, rotated)
+
+    if not ok then
+        avid.equipped = previousEquipment
+        return false, reason
+    end
+
+    avid.grid = {
+        x = math.floor(tonumber(x)),
+        y = math.floor(tonumber(y)),
+        rotated = rotated == true,
+    }
+
+    inv.changed = true
+    return true
+end
+
 function Spatial.CanFitRecords(inv, name, count)
     count = math.max(0, math.floor(tonumber(count) or 0))
     if count == 0 then return true end
