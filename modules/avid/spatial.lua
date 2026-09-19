@@ -126,7 +126,12 @@ function Spatial.Normalize(inv)
             end
 
             if not avid.equipped and avid.grid then
-                local ok = canPlace(layout, occupied, item.name, avid.grid.x, avid.grid.y, avid.grid.rotated == true)
+                if avid.grid.rotated then
+                    avid.grid.rotated = false
+                    changed = true
+                end
+
+                local ok = canPlace(layout, occupied, item.name, avid.grid.x, avid.grid.y, false)
 
                 if ok then
                     occupy(occupied, item.name, avid.grid)
