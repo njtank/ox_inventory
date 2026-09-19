@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#061015"/>
+      <stop offset="1" stop-color="#03090d"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0a171d"/>
+      <stop offset="1" stop-color="#061015"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <rect x="42" y="34" width="1516" height="832" rx="14" fill="#041015" stroke="#16343b"/>
+  <text x="72" y="78" fill="#edf8f8" font-family="Georgia,serif" font-size="32" letter-spacing="5">AVID RP</text>
+  <text x="75" y="99" fill="#66d9e8" font-family="Arial,sans-serif" font-size="10" letter-spacing="4">MORE THAN A CITY</text>
+  <text x="662" y="80" fill="#edf8f8" font-family="Arial,sans-serif" font-size="12" letter-spacing="2">INVENTORY</text>
+  <text x="792" y="80" fill="#698087" font-family="Arial,sans-serif" font-size="12" letter-spacing="2">CHARACTER</text>
+  <text x="930" y="80" fill="#698087" font-family="Arial,sans-serif" font-size="12" letter-spacing="2">STORAGE</text>
+  <line x1="662" y1="98" x2="748" y2="98" stroke="#66d9e8" stroke-width="2"/>
+  <line x1="62" y1="112" x2="1538" y2="112" stroke="#15333a"/>
+  <text x="74" y="154" fill="#66d9e8" font-family="Arial,sans-serif" font-size="10" letter-spacing="3">DEDICATED READY SLOTS</text>
+  <text x="74" y="194" fill="#edf8f8" font-family="Georgia,serif" font-size="34">Character Equipment</text>
+  <text x="74" y="222" fill="#6f888f" font-family="Arial,sans-serif" font-size="13">Phone, radio, bag, armor, primary, secondary, and melee equipment are separated from loose inventory.</text>
+  <rect x="150" y="255" width="625" height="540" rx="8" fill="url(#panel)" stroke="#244e57"/>
+  <text x="168" y="283" fill="#66d9e8" font-family="Arial,sans-serif" font-size="10" letter-spacing="2">EQUIPPED</text>
+  <text x="168" y="312" fill="#edf8f8" font-family="Georgia,serif" font-size="24">Character Equipment</text>
+  <line x1="151" y1="331" x2="774" y2="331" stroke="#15333a"/><circle cx="295" cy="350" r="28" fill="none" stroke="#315f69" stroke-width="2"/><rect x="238" y="395" width="114" height="210" rx="32" fill="none" stroke="#315f69" stroke-width="2"/><rect x="247" y="620" width="32" height="150" rx="10" fill="none" stroke="#315f69" stroke-width="2"/><rect x="311" y="620" width="32" height="150" rx="10" fill="none" stroke="#315f69" stroke-width="2"/><rect x="405" y="337" width="340" height="62" rx="5" fill="#08161b" stroke="#315f69"/>
+  <text x="417" y="355" fill="#6f888f" font-family="Arial,sans-serif" font-size="9" letter-spacing="1">PHONE</text>
+  <text x="417" y="380" fill="#dcebed" font-family="Arial,sans-serif" font-size="12">Smartphone</text><rect x="405" y="400" width="340" height="62" rx="5" fill="#08161b" stroke="#315f69"/>
+  <text x="417" y="418" fill="#6f888f" font-family="Arial,sans-serif" font-size="9" letter-spacing="1">RADIO</text>
+  <text x="417" y="443" fill="#dcebed" font-family="Arial,sans-serif" font-size="12">Portable Radio</text><rect x="405" y="463" width="340" height="62" rx="5" fill="#08161b" stroke="#315f69"/>
+  <text x="417" y="481" fill="#6f888f" font-family="Arial,sans-serif" font-size="9" letter-spacing="1">BAG</text>
+  <text x="417" y="506" fill="#dcebed" font-family="Arial,sans-serif" font-size="12">Large Backpack</text><rect x="405" y="526" width="340" height="62" rx="5" fill="#08161b" stroke="#315f69"/>
+  <text x="417" y="544" fill="#6f888f" font-family="Arial,sans-serif" font-size="9" letter-spacing="1">ARMOR</text>
+  <text x="417" y="569" fill="#dcebed" font-family="Arial,sans-serif" font-size="12">Light Armor</text><rect x="405" y="589" width="340" height="62" rx="5" fill="#08161b" stroke="#315f69"/>
+  <text x="417" y="607" fill="#6f888f" font-family="Arial,sans-serif" font-size="9" letter-spacing="1">PRIMARY</text>
+  <text x="417" y="632" fill="#dcebed" font-family="Arial,sans-serif" font-size="12">Carbine Rifle</text><rect x="405" y="652" width="340" height="62" rx="5" fill="#08161b" stroke="#315f69"/>
+  <text x="417" y="670" fill="#6f888f" font-family="Arial,sans-serif" font-size="9" letter-spacing="1">SECONDARY</text>
+  <text x="417" y="695" fill="#dcebed" font-family="Arial,sans-serif" font-size="12">Combat Pistol</text><rect x="405" y="715" width="340" height="62" rx="5" fill="#08161b" stroke="#315f69"/>
+  <text x="417" y="733" fill="#6f888f" font-family="Arial,sans-serif" font-size="9" letter-spacing="1">MELEE</text>
+  <text x="417" y="758" fill="#dcebed" font-family="Arial,sans-serif" font-size="12">Knife</text><rect x="800" y="255" width="650" height="540" rx="8" fill="url(#panel)" stroke="#244e57"/>
+  <text x="818" y="283" fill="#66d9e8" font-family="Arial,sans-serif" font-size="10" letter-spacing="2">ROLEPLAY LOADOUT</text>
+  <text x="818" y="312" fill="#edf8f8" font-family="Georgia,serif" font-size="24">Equipment Behavior</text>
+  <line x1="801" y1="331" x2="1449" y2="331" stroke="#15333a"/><rect x="835" y="337" width="580" height="52" rx="5" fill="#08161b" stroke="#274e57"/><text x="855" y="357" fill="#66d9e8" font-family="Arial" font-size="11">PHONE</text><text x="970" y="357" fill="#789097" font-family="Arial" font-size="11">Everyday utility, distinct from loose pockets.</text><rect x="835" y="400" width="580" height="52" rx="5" fill="#08161b" stroke="#274e57"/><text x="855" y="420" fill="#66d9e8" font-family="Arial" font-size="11">RADIO</text><text x="970" y="420" fill="#789097" font-family="Arial" font-size="11">Dedicated communications position.</text><rect x="835" y="463" width="580" height="52" rx="5" fill="#08161b" stroke="#274e57"/><text x="855" y="483" fill="#66d9e8" font-family="Arial" font-size="11">BAG</text><text x="970" y="483" fill="#789097" font-family="Arial" font-size="11">Equipping a bag activates portable storage.</text><rect x="835" y="526" width="580" height="52" rx="5" fill="#08161b" stroke="#274e57"/><text x="855" y="546" fill="#66d9e8" font-family="Arial" font-size="11">ARMOR</text><text x="970" y="546" fill="#789097" font-family="Arial" font-size="11">Reserved for armor and future carrier logic.</text><rect x="835" y="589" width="580" height="52" rx="5" fill="#08161b" stroke="#274e57"/><text x="855" y="609" fill="#66d9e8" font-family="Arial" font-size="11">PRIMARY</text><text x="970" y="609" fill="#789097" font-family="Arial" font-size="11">Long-gun ready position.</text><rect x="835" y="652" width="580" height="52" rx="5" fill="#08161b" stroke="#274e57"/><text x="855" y="672" fill="#66d9e8" font-family="Arial" font-size="11">SECONDARY</text><text x="970" y="672" fill="#789097" font-family="Arial" font-size="11">Holstered handgun ready position.</text><rect x="835" y="715" width="580" height="52" rx="5" fill="#08161b" stroke="#274e57"/><text x="855" y="735" fill="#66d9e8" font-family="Arial" font-size="11">MELEE</text><text x="970" y="735" fill="#789097" font-family="Arial" font-size="11">Accessible melee/tool ready position.</text>
+  <text x="72" y="844" fill="#50676d" font-family="Arial,sans-serif" font-size="10" letter-spacing="2">LOS SANTOS, A DIFFERENT KIND OF LIFE</text>
+  <text x="1528" y="844" fill="#50676d" font-family="Arial,sans-serif" font-size="10" letter-spacing="2" text-anchor="end">PEOPLE  ›  STORIES  ›  A BETTER LOS SANTOS</text>
+</svg>
