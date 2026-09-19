@@ -927,7 +927,7 @@ const AvidInventory: React.FC = () => {
             </section>
           </div>
         ) : (
-          <div className={'avid-layout ' + ((state.backpack || state.ground) ? 'has-storage' : 'no-storage')}>
+          <div className="avid-layout">
             {equipmentPanel}
 
             <Grid
