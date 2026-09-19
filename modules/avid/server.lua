@@ -37,6 +37,7 @@ return function(Inventory)
                     weight = item.weight or 0,
                     metadata = item.metadata or {},
                     avid = item.avid or { version = 1 },
+                    compatibleEquipment = Spatial.GetCompatibleEquipment(item.name),
                     width = size.w,
                     height = size.h,
                 }
@@ -73,6 +74,7 @@ return function(Inventory)
                     weight = item.weight,
                     metadata = item.metadata or {},
                     avid = item.avid,
+                    compatibleEquipment = Spatial.GetCompatibleEquipment(item.name),
                 }
             end
         end
@@ -180,6 +182,24 @@ return function(Inventory)
         end
 
         return { success = false, error = 'nothing_equipped' }
+    end)
+
+    lib.callback.register('ox_inventory:avid:unequipToGrid', function(source, data)
+        if type(data) ~= 'table' then return { success = false, error = 'invalid_payload' } end
+
+        local inv = Inventory(source)
+        if not inv then return { success = false, error = 'invalid_inventory' } end
+
+        local slot = tonumber(data.slot)
+        local item = inv.items[slot]
+        if not item or not (item.avid and item.avid.equipped) then
+            return { success = false, error = 'item_not_equipped' }
+        end
+
+        local ok, err = Spatial.UnequipToGrid(inv, slot, tonumber(data.x), tonumber(data.y), data.rotated == true)
+        if ok then sync(inv, slot) end
+
+        return { success = ok == true, error = err, state = ok and state(source) or nil }
     end)
 
     lib.callback.register('ox_inventory:avid:move', function(source, data)
