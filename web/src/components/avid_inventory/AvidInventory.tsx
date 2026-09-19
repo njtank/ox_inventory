@@ -351,9 +351,10 @@ const ContextMenu: React.FC<{
   onGive: () => void;
   onDrop: () => void;
   onQuickMove: () => void;
+  onSplit: () => void;
   onEquip: (slot: string) => void;
   onUnequip: () => void;
-}> = ({ context, onClose, onUse, onGive, onDrop, onQuickMove, onEquip, onUnequip }) => {
+}> = ({ context, onClose, onUse, onGive, onDrop, onQuickMove, onSplit, onEquip, onUnequip }) => {
   if (!context) return null;
 
   const equipment = context.item.compatibleEquipment || [];
@@ -391,6 +392,7 @@ const ContextMenu: React.FC<{
             <button onClick={onQuickMove}>
               {context.kind === 'pockets' ? 'Move to backpack' : 'Move to pockets'}
             </button>
+            {context.item.count > 1 && <button onClick={onSplit}>Split Stack</button>}
             <button className="is-drop" onClick={onDrop}>Drop on ground</button>
 
             {context.kind === 'pockets' && equipment.map((slot) => (
@@ -486,6 +488,21 @@ const AvidInventory: React.FC = () => {
     });
 
     if (!result?.success) return show(result?.error || 'Unable to drop item');
+
+    if (result.state) setState(result.state); else void refresh();
+    setSelected(null);
+    setContext(null);
+  }, [refresh, show]);
+
+  const splitStack = useCallback(async (entry: AvidItem, kind: GridName) => {
+    if ((entry.count || 1) <= 1) return;
+
+    const result = await fetchNui<ActionResponse>('avid:splitStack', {
+      from: kind,
+      slot: entry.slot,
+    });
+
+    if (!result?.success) return show(result?.error || 'Unable to split stack');
 
     if (result.state) setState(result.state); else void refresh();
     setSelected(null);
@@ -898,6 +915,11 @@ const AvidInventory: React.FC = () => {
           onQuickMove={() => {
             if (context && context.kind !== 'equipment') {
               void quickMove(context.item, context.kind);
+            }
+          }}
+          onSplit={() => {
+            if (context && context.kind !== 'equipment') {
+              void splitStack(context.item, context.kind);
             }
           }}
           onEquip={(slot) => {
