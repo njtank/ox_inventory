@@ -55,11 +55,19 @@ type AvidState = {
   backpack?: GridInventory | null;
   equipment: Record<string, AvidItem>;
   equipmentSlots: Record<string, { label: string }>;
+  ground?: {
+    id: string | number;
+    label?: string;
+    slots: number;
+    weight: number;
+    maxWeight: number;
+    items: AvidItem[];
+  } | null;
 };
 
 type ActionResponse = { success: boolean; error?: string; state?: AvidState };
 type DragPayload = {
-  source: 'grid' | 'equipment';
+  source: 'grid' | 'equipment' | 'ground';
   kind?: GridName;
   slot: number;
   rotated: boolean;
@@ -133,6 +141,9 @@ const Grid: React.FC<{
 
       <div
         className={'avid-grid ' + (dragging ? 'is-drag-target' : '')}
+        data-grid-container={kind}
+        data-grid-cols={inventory.cols}
+        data-grid-rows={inventory.rows}
         style={{
           gridTemplateColumns: `repeat(${inventory.cols}, 1fr)`,
           gridTemplateRows: `repeat(${inventory.rows}, 1fr)`,
@@ -312,6 +323,60 @@ const Details: React.FC<{
     )}
   </section>
 );
+
+
+const GroundPanel: React.FC<{
+  ground: NonNullable<AvidState['ground']>;
+  dragging: DragPayload | null;
+  onPointerStart: (event: React.PointerEvent, payload: DragPayload, item: AvidItem) => void;
+}> = ({ ground, dragging, onPointerStart }) => {
+  const slots = useMemo(() => Array.from({ length: Math.max(ground.slots || 6, 6) }), [ground.slots]);
+  const bySlot = useMemo(() => new Map(ground.items.map((entry) => [entry.slot, entry])), [ground.items]);
+
+  return (
+    <section className="avid-panel avid-ground-panel">
+      <header className="avid-panel-head">
+        <div>
+          <small>GROUND</small>
+          <h2>{ground.label || 'Nearby Drop'}</h2>
+          <p>Drag items between the ground, pockets, and your bag.</p>
+        </div>
+      </header>
+
+      <div className="avid-ground-scroll">
+        <div className="avid-ground-grid">
+          {slots.map((_, index) => {
+            const slot = index + 1;
+            const entry = bySlot.get(slot);
+            const isDragging = dragging?.source === 'ground' && dragging.slot === slot;
+
+            return (
+              <button
+                key={slot}
+                className={'avid-ground-slot ' + (entry ? 'has-item ' : '') + (isDragging ? 'is-dragging ' : '')}
+                data-ground-slot={slot}
+                onPointerDown={(event) => {
+                  if (event.button !== 0 || !entry) return;
+                  onPointerStart(event, { source: 'ground', slot, rotated: false }, entry);
+                }}
+              >
+                {entry ? (
+                  <>
+                    <img src={itemImage(entry)} alt="" draggable={false} />
+                    {entry.count > 1 && <em>{entry.count}x</em>}
+                    <span>{entry.label}</span>
+                  </>
+                ) : (
+                  <small>{slot}</small>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+};
 
 const ContextMenu: React.FC<{
   context: ContextState;
@@ -517,6 +582,36 @@ const AvidInventory: React.FC = () => {
     setSelected(null);
   }, [refresh, show]);
 
+
+  const groundToGrid = useCallback(async (payload: DragPayload, target: GridName, x: number, y: number) => {
+    const result = await fetchNui<ActionResponse>('avid:groundToGrid', {
+      slot: payload.slot,
+      count: 1,
+      to: target,
+      x,
+      y,
+      rotated: false,
+    });
+
+    if (!result?.success) return show(result?.error || 'Unable to pick up item');
+    if (result.state) setState(result.state); else void refresh();
+  }, [refresh, show]);
+
+  const gridToGround = useCallback(async (payload: DragPayload, toSlot: number) => {
+    if (payload.source !== 'grid' || !payload.kind) return;
+
+    const result = await fetchNui<ActionResponse>('avid:gridToGround', {
+      from: payload.kind,
+      slot: payload.slot,
+      count: 1,
+      toSlot,
+    });
+
+    if (!result?.success) return show(result?.error || 'Unable to move item to ground');
+    if (result.state) setState(result.state); else void refresh();
+    setSelected(null);
+  }, [refresh, show]);
+
   const equipItem = useCallback(async (equipmentSlot: string, entry?: AvidItem, kind?: GridName) => {
     if (!entry || kind !== 'pockets') {
       show('Items must be in your pockets before equipping');
@@ -622,18 +717,45 @@ const AvidInventory: React.FC = () => {
 
       const element = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement | null;
       const equipment = element?.closest<HTMLElement>('[data-equipment-slot]');
-      const cell = element?.closest<HTMLElement>('[data-grid-kind][data-grid-x][data-grid-y]');
+      const groundSlot = element?.closest<HTMLElement>('[data-ground-slot]');
 
       if (equipment) {
         const slotName = equipment.dataset.equipmentSlot;
         if (slotName) void equipDrop(slotName, session.payload);
-      } else if (cell) {
-        const kind = cell.dataset.gridKind as GridName;
-        const x = Number(cell.dataset.gridX);
-        const y = Number(cell.dataset.gridY);
+      } else if (groundSlot && session.payload.source === 'grid') {
+        const toSlot = Number(groundSlot.dataset.groundSlot);
+        if (toSlot > 0) void gridToGround(session.payload, toSlot);
+      } else {
+        const grids = Array.from(document.querySelectorAll<HTMLElement>('[data-grid-container]'));
 
-        if ((kind === 'pockets' || kind === 'backpack') && x > 0 && y > 0) {
-          void dropOnGrid(session.payload, kind, x, y);
+        for (const grid of grids) {
+          const rect = grid.getBoundingClientRect();
+
+          if (
+            event.clientX < rect.left ||
+            event.clientX > rect.right ||
+            event.clientY < rect.top ||
+            event.clientY > rect.bottom
+          ) continue;
+
+          const cols = Number(grid.dataset.gridCols);
+          const rows = Number(grid.dataset.gridRows);
+          const kind = grid.dataset.gridContainer as GridName;
+
+          if (!cols || !rows || (kind !== 'pockets' && kind !== 'backpack')) break;
+
+          const cellWidth = rect.width / cols;
+          const cellHeight = rect.height / rows;
+          const x = Math.max(1, Math.min(cols, Math.floor((event.clientX - rect.left) / cellWidth) + 1));
+          const y = Math.max(1, Math.min(rows, Math.floor((event.clientY - rect.top) / cellHeight) + 1));
+
+          if (session.payload.source === 'ground') {
+            void groundToGrid(session.payload, kind, x, y);
+          } else {
+            void dropOnGrid(session.payload, kind, x, y);
+          }
+
+          break;
         }
       }
 
@@ -648,7 +770,7 @@ const AvidInventory: React.FC = () => {
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
     };
-  }, [dropOnGrid, equipDrop]);
+  }, [dropOnGrid, equipDrop, gridToGround, groundToGrid]);
 
   useEffect(() => {
     const listener = (event: KeyboardEvent) => {
@@ -672,7 +794,8 @@ const AvidInventory: React.FC = () => {
   const externalOpen = Boolean(
     rightInventory?.id &&
     rightInventory.type &&
-    rightInventory.type !== 'newdrop'
+    rightInventory.type !== 'newdrop' &&
+    rightInventory.type !== 'drop'
   );
 
   const gridProps = {
@@ -710,6 +833,14 @@ const AvidInventory: React.FC = () => {
       <p>Drag a backpack from your pockets onto the Bag equipment slot.</p>
     </section>
   );
+
+  const groundPanel = state?.ground ? (
+    <GroundPanel
+      ground={state.ground}
+      dragging={dragging}
+      onPointerStart={startPointerDrag}
+    />
+  ) : null;
 
   if (!visible) return <InventoryHotbar />;
 
@@ -773,14 +904,7 @@ const AvidInventory: React.FC = () => {
             <div className="avid-right">
               {backpackPanel}
 
-              <Details
-                item={item}
-                kind={selected?.kind}
-                onRotate={() => void rotateItem(item, selected?.kind)}
-                onUse={() => void useItem(item, selected?.kind)}
-                onGive={() => void giveSpecificItem(item, selected?.kind)}
-                onDrop={() => void dropSpecificItem(item, selected?.kind)}
-              />
+              {groundPanel}
             </div>
           </div>
         )}
