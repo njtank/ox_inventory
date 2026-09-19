@@ -39,10 +39,10 @@ local function startPreview()
 
     CreateThread(function()
         while previewActive and previewPed and DoesEntityExist(previewPed) do
-            -- Place the clone by screen position instead of world/camera guesswork.
-            -- 0.155 / 0.82 puts the ped's feet near the bottom of the character pane.
-            local nearPoint, normal = GetWorldCoordFromScreenCoord(0.155, 0.82)
-            local depth = 2.35
+            -- Anchor the clone inside the left-hand live-character viewport.
+            -- These are normalised screen coordinates; the entity origin is at the feet.
+            local nearPoint, normal = GetWorldCoordFromScreenCoord(0.095, 0.835)
+            local depth = 2.20
             local pos = nearPoint + normal * depth
             local camRot = GetGameplayCamRot(2)
 
@@ -52,6 +52,9 @@ local function startPreview()
             SetEntityAlpha(previewPed, 255, false)
             FreezeEntityPosition(previewPed, true)
 
+            -- The normal third-person player model remains in the world behind the UI.
+            -- Hide it only for this client's frame so the inventory shows one clean preview.
+            SetEntityLocallyInvisible(ped)
             HideHudAndRadarThisFrame()
             Wait(0)
         end
