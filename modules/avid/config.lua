@@ -68,6 +68,7 @@ return {
             backpack_large = true,
         }},
         armor = { label = 'Armor', items = {
+            armour = true,
             light_armour = true,
             heavy_armour = true,
         }},
