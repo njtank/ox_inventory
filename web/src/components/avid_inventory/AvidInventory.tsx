@@ -122,9 +122,10 @@ const Grid: React.FC<{
   dragging: DragPayload | null;
   onSelect: (selection: Selection) => void;
   onUse: (item: AvidItem, kind: GridName) => void;
+  onQuickMove: (item: AvidItem, kind: GridName) => void;
   onPointerStart: (event: React.PointerEvent, payload: DragPayload, item: AvidItem) => void;
   onContext: (event: React.MouseEvent, item: AvidItem, kind: GridName) => void;
-}> = ({ title, subtitle, inventory, kind, selected, search, dragging, onSelect, onUse, onPointerStart, onContext }) => {
+}> = ({ title, subtitle, inventory, kind, selected, search, dragging, onSelect, onUse, onQuickMove, onPointerStart, onContext }) => {
   const cells = useMemo(() => Array.from({ length: inventory.cols * inventory.rows }), [inventory.cols, inventory.rows]);
   const query = search.trim().toLowerCase();
 
@@ -187,16 +188,21 @@ const Grid: React.FC<{
                 onPointerDown={(event) => {
                   if (event.button !== 0) return;
                   onSelect({ kind, slot: entry.slot });
+                  if (event.altKey) return;
                   onPointerStart(
                     event,
-                    { source: 'grid', kind, slot: entry.slot, rotated: grid.rotated === true },
+                    { source: 'grid', kind, slot: entry.slot, rotated: false },
                     entry
                   );
                 }}
                 onContextMenu={(event) => onContext(event, entry, kind)}
                 onClick={(event) => {
                   onSelect({ kind, slot: entry.slot });
-                  if (event.altKey && kind === 'pockets') onUse(entry, kind);
+
+                  if (event.altKey) {
+                    event.preventDefault();
+                    onQuickMove(entry, kind);
+                  }
                 }}
                 onDoubleClick={() => kind === 'pockets' && onUse(entry, kind)}
               >
@@ -344,10 +350,10 @@ const ContextMenu: React.FC<{
   onUse: () => void;
   onGive: () => void;
   onDrop: () => void;
-  onRotate: () => void;
+  onQuickMove: () => void;
   onEquip: (slot: string) => void;
   onUnequip: () => void;
-}> = ({ context, onClose, onUse, onGive, onDrop, onRotate, onEquip, onUnequip }) => {
+}> = ({ context, onClose, onUse, onGive, onDrop, onQuickMove, onEquip, onUnequip }) => {
   if (!context) return null;
 
   const equipment = context.item.compatibleEquipment || [];
@@ -382,7 +388,9 @@ const ContextMenu: React.FC<{
           <>
             <button onClick={onUse} disabled={context.kind !== 'pockets'}>Use</button>
             <button onClick={onGive} disabled={context.kind !== 'pockets'}>Give</button>
-            <button onClick={onRotate}>Rotate</button>
+            <button onClick={onQuickMove}>
+              {context.kind === 'pockets' ? 'Move to backpack' : 'Move to pockets'}
+            </button>
             <button className="is-drop" onClick={onDrop}>Drop on ground</button>
 
             {context.kind === 'pockets' && equipment.map((slot) => (
@@ -456,12 +464,6 @@ const AvidInventory: React.FC = () => {
   useNuiEvent('displayMetadata', (data: Array<{ metadata: string; value: string }>) => dispatch(setAdditionalMetadata(data)));
   useExitListener(setVisible);
 
-  const item = useMemo(() => {
-    if (!state || !selected) return undefined;
-    const inventory = selected.kind === 'pockets' ? state.pockets : state.backpack;
-    return inventory?.items.find((entry) => entry.slot === selected.slot);
-  }, [state, selected]);
-
   const useItem = useCallback(async (entry?: AvidItem, kind?: GridName) => {
     if (!entry || kind !== 'pockets') return;
     await fetchNui('useItem', entry.slot);
@@ -490,20 +492,17 @@ const AvidInventory: React.FC = () => {
     setContext(null);
   }, [refresh, show]);
 
-  const rotateItem = useCallback(async (entry?: AvidItem, kind?: GridName) => {
-    if (!entry?.avid?.grid || !kind) return;
-
-    const grid = entry.avid.grid;
-    const result = await fetchNui<ActionResponse>('avid:setGrid', {
-      inventory: kind,
+  const quickMove = useCallback(async (entry: AvidItem, kind: GridName) => {
+    const result = await fetchNui<ActionResponse>('avid:quickMove', {
+      from: kind,
       slot: entry.slot,
-      x: grid.x,
-      y: grid.y,
-      rotated: !grid.rotated,
     });
 
-    if (!result?.success) return show(result?.error || 'Unable to rotate item');
+    if (!result?.success) return show(result?.error || 'Unable to quick move item');
+
     if (result.state) setState(result.state); else void refresh();
+    setSelected(null);
+    setContext(null);
   }, [refresh, show]);
 
   const dropOnGrid = useCallback(async (payload: DragPayload, target: GridName, x: number, y: number) => {
@@ -517,7 +516,7 @@ const AvidInventory: React.FC = () => {
         slot: payload.slot,
         x,
         y,
-        rotated: payload.rotated,
+        rotated: false,
       });
 
       if (!result?.success) return show(result?.error || 'Unable to unequip item');
@@ -531,8 +530,8 @@ const AvidInventory: React.FC = () => {
 
     const endpoint = payload.kind === target ? 'avid:setGrid' : 'avid:move';
     const request = payload.kind === target
-      ? { inventory: target, slot: payload.slot, x, y, rotated: payload.rotated }
-      : { from: payload.kind, to: target, slot: payload.slot, x, y, rotated: payload.rotated };
+      ? { inventory: target, slot: payload.slot, x, y, rotated: false }
+      : { from: payload.kind, to: target, slot: payload.slot, x, y, rotated: false };
 
     const result = await fetchNui<ActionResponse>(endpoint, request);
 
@@ -734,11 +733,6 @@ const AvidInventory: React.FC = () => {
     const listener = (event: KeyboardEvent) => {
       if (!visible) return;
 
-      if (event.key.toLowerCase() === 'r' && item) {
-        event.preventDefault();
-        void rotateItem(item, selected?.kind);
-      }
-
       if (event.key === 'Escape' && context) {
         event.preventDefault();
         setContext(null);
@@ -747,7 +741,7 @@ const AvidInventory: React.FC = () => {
 
     window.addEventListener('keydown', listener);
     return () => window.removeEventListener('keydown', listener);
-  }, [visible, item, selected, rotateItem, context]);
+  }, [visible, context]);
 
   const externalOpen = Boolean(
     rightInventory?.id &&
@@ -762,6 +756,7 @@ const AvidInventory: React.FC = () => {
     dragging,
     onSelect: setSelected,
     onUse: useItem,
+    onQuickMove: quickMove,
     onPointerStart: startPointerDrag,
     onContext: openContext,
   };
@@ -823,7 +818,7 @@ const AvidInventory: React.FC = () => {
               placeholder="Search what you're carrying..."
             />
           </label>
-          <div><kbd>R</kbd> Rotate · <kbd>RMB</kbd> Item menu · Double-click Use · Drag anywhere</div>
+          <div><kbd>ALT + CLICK</kbd> Quick move · <kbd>RMB</kbd> Item menu · Double-click Use · Drag anywhere</div>
         </div>
 
         {!state ? (
@@ -900,11 +895,10 @@ const AvidInventory: React.FC = () => {
           onDrop={() => {
             if (context) void dropSpecificItem(context.item, context.kind);
           }}
-          onRotate={() => {
+          onQuickMove={() => {
             if (context && context.kind !== 'equipment') {
-              void rotateItem(context.item, context.kind);
+              void quickMove(context.item, context.kind);
             }
-            setContext(null);
           }}
           onEquip={(slot) => {
             if (context && context.kind !== 'equipment') {
