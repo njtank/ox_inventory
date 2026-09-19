@@ -285,46 +285,6 @@ const Character: React.FC<{
   );
 };
 
-const Details: React.FC<{
-  item?: AvidItem;
-  kind?: GridName;
-  onRotate: () => void;
-  onUse: () => void;
-  onGive: () => void;
-  onDrop: () => void;
-}> = ({ item, kind, onRotate, onUse, onGive, onDrop }) => (
-  <section className="avid-panel avid-details">
-    <header className="avid-panel-head">
-      <div>
-        <small>ITEM</small>
-        <h2>{item?.label || 'Nothing selected'}</h2>
-        <p>{item ? `${item.width}x${item.height} footprint · ${kg(item.weight)}` : 'Select an item to inspect it.'}</p>
-      </div>
-    </header>
-
-    {item ? (
-      <div className="avid-detail-content">
-        <img src={itemImage(item)} alt="" />
-        <div>
-          <strong>{item.label}</strong>
-          <small>{item.name}</small>
-          {item.metadata?.description && <p>{String(item.metadata.description)}</p>}
-        </div>
-
-        <div className="avid-actions">
-          <button onClick={onRotate}>R · Rotate</button>
-          <button onClick={onUse} disabled={kind !== 'pockets'}>Use</button>
-          <button onClick={onGive} disabled={kind !== 'pockets'}>Give</button>
-          <button className="is-drop" onClick={onDrop} disabled={!kind}>Drop</button>
-        </div>
-      </div>
-    ) : (
-      <div className="avid-empty-details">Drag items to repack. Press R to rotate the selected item.</div>
-    )}
-  </section>
-);
-
-
 const GroundPanel: React.FC<{
   ground: NonNullable<AvidState['ground']>;
   dragging: DragPayload | null;
@@ -586,7 +546,6 @@ const AvidInventory: React.FC = () => {
   const groundToGrid = useCallback(async (payload: DragPayload, target: GridName, x: number, y: number) => {
     const result = await fetchNui<ActionResponse>('avid:groundToGrid', {
       slot: payload.slot,
-      count: 1,
       to: target,
       x,
       y,
@@ -603,7 +562,6 @@ const AvidInventory: React.FC = () => {
     const result = await fetchNui<ActionResponse>('avid:gridToGround', {
       from: payload.kind,
       slot: payload.slot,
-      count: 1,
       toSlot,
     });
 
