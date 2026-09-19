@@ -127,6 +127,10 @@ return function(Inventory)
                     count = item.count or 1,
                     weight = item.weight or 0,
                     metadata = item.metadata or {},
+                    avid = { version = 1 },
+                    width = 1,
+                    height = 1,
+                    compatibleEquipment = {},
                 }
             end
         end
