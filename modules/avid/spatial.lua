@@ -229,6 +229,15 @@ function Spatial.CanFitRecords(inv, name, count)
     return true
 end
 
+function Spatial.CanReplace(inv, name, outgoingSlot)
+    local layout = Spatial.GetLayout(inv)
+    if not layout then return true end
+
+    Spatial.Normalize(inv)
+    local occupied = occupancy(inv, layout, outgoingSlot)
+    return firstFit(layout, occupied, name) ~= nil
+end
+
 function Spatial.PlanTargets(inv, name, target)
     local layout = Spatial.GetLayout(inv)
     if not layout then return true, {} end
