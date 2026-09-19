@@ -42,8 +42,8 @@ local function startPreview()
             -- Frame the clone inside the dedicated live-character viewport.
             -- Pulling the clone farther from the camera keeps the whole body inside
             -- the panel, while the screen anchor places it clear of the equipment column.
-            local nearPoint, normal = GetWorldCoordFromScreenCoord(0.118, 0.755)
-            local depth = 3.05
+            local nearPoint, normal = GetWorldCoordFromScreenCoord(0.132, 0.735)
+            local depth = 3.55
             local pos = nearPoint + normal * depth
             local camRot = GetGameplayCamRot(2)
 
@@ -120,6 +120,10 @@ RegisterNUICallback('avid:drop', function(data, cb)
     }
 
     respond(cb, lib.callback.await('ox_inventory:avid:drop', false, data))
+end)
+
+RegisterNUICallback('avid:mergeStack', function(data, cb)
+    respond(cb, lib.callback.await('ox_inventory:avid:mergeStack', false, data))
 end)
 
 RegisterNUICallback('avid:splitStack', function(data, cb)
