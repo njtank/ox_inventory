@@ -18,6 +18,10 @@ RegisterNUICallback('avid:unequip', function(data, cb)
     respond(cb, lib.callback.await('ox_inventory:avid:unequip', false, data.equipmentSlot))
 end)
 
+RegisterNUICallback('avid:unequipToGrid', function(data, cb)
+    respond(cb, lib.callback.await('ox_inventory:avid:unequipToGrid', false, data))
+end)
+
 RegisterNUICallback('avid:move', function(data, cb)
     respond(cb, lib.callback.await('ox_inventory:avid:move', false, data))
 end)
