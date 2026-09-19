@@ -85,6 +85,14 @@ RegisterNUICallback('avid:unequipToGrid', function(data, cb)
     respond(cb, lib.callback.await('ox_inventory:avid:unequipToGrid', false, data))
 end)
 
+RegisterNUICallback('avid:groundToGrid', function(data, cb)
+    respond(cb, lib.callback.await('ox_inventory:avid:groundToGrid', false, data))
+end)
+
+RegisterNUICallback('avid:gridToGround', function(data, cb)
+    respond(cb, lib.callback.await('ox_inventory:avid:gridToGround', false, data))
+end)
+
 RegisterNUICallback('avid:drop', function(data, cb)
     if cache.vehicle or IsPedFalling(cache.ped) then
         return cb({ success = false, error = 'cannot_drop_here' })
