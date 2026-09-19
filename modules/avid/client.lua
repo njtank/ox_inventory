@@ -1,15 +1,31 @@
-local previewCam
+local previewPed
 local previewActive = false
+
+local function cameraVectors()
+    local rot = GetGameplayCamRot(2)
+    local rx = math.rad(rot.x)
+    local rz = math.rad(rot.z)
+    local cosX = math.abs(math.cos(rx))
+
+    local forward = vec3(
+        -math.sin(rz) * cosX,
+        math.cos(rz) * cosX,
+        math.sin(rx)
+    )
+
+    local right = vec3(math.cos(rz), math.sin(rz), 0.0)
+
+    return rot, forward, right
+end
 
 local function stopPreview()
     previewActive = false
 
-    if previewCam and DoesCamExist(previewCam) then
-        RenderScriptCams(false, true, 220, true, true)
-        DestroyCam(previewCam, false)
+    if previewPed and DoesEntityExist(previewPed) then
+        DeleteEntity(previewPed)
     end
 
-    previewCam = nil
+    previewPed = nil
 end
 
 local function startPreview()
@@ -18,31 +34,41 @@ local function startPreview()
     local ped = cache.ped
     if not ped or ped == 0 or not DoesEntityExist(ped) or cache.vehicle then return end
 
-    local coords = GetEntityCoords(ped)
-    local camPos = GetOffsetFromEntityInWorldCoords(ped, 0.15, 3.15, 0.72)
-    local right = GetEntityRightVector(ped)
-    local target = vec3(
-        coords.x + right.x * 1.22,
-        coords.y + right.y * 1.22,
-        coords.z + 0.72
-    )
+    previewPed = ClonePed(ped, false, false, true)
+    if not previewPed or previewPed == 0 then return end
 
-    previewCam = CreateCamWithParams(
-        'DEFAULT_SCRIPTED_CAMERA',
-        camPos.x, camPos.y, camPos.z,
-        0.0, 0.0, 0.0,
-        33.0,
-        true,
-        2
-    )
-
-    PointCamAtCoord(previewCam, target.x, target.y, target.z)
-    SetCamActive(previewCam, true)
-    RenderScriptCams(true, true, 260, true, true)
     previewActive = true
 
+    SetEntityInvincible(previewPed, true)
+    SetEntityCollision(previewPed, false, false)
+    SetBlockingOfNonTemporaryEvents(previewPed, true)
+    SetPedCanRagdoll(previewPed, false)
+    SetPedCanBeTargetted(previewPed, false)
+    RemoveAllPedWeapons(previewPed, true)
+    FreezeEntityPosition(previewPed, true)
+
     CreateThread(function()
-        while previewActive and previewCam and DoesCamExist(previewCam) do
+        while previewActive and previewPed and DoesEntityExist(previewPed) do
+            local camPos = GetGameplayCamCoord()
+            local rot, forward, right = cameraVectors()
+
+            -- Keep the exact player appearance framed in the left character pane
+            -- while preserving the player's existing world view.
+            local distance = 2.75
+            local horizontal = -0.78
+            local vertical = -1.20
+
+            local pos = vec3(
+                camPos.x + forward.x * distance + right.x * horizontal,
+                camPos.y + forward.y * distance + right.y * horizontal,
+                camPos.z + forward.z * distance + vertical
+            )
+
+            SetEntityCoordsNoOffset(previewPed, pos.x, pos.y, pos.z, false, false, false)
+            SetEntityHeading(previewPed, rot.z + 180.0)
+            SetEntityVisible(previewPed, true, false)
+            FreezeEntityPosition(previewPed, true)
+
             HideHudAndRadarThisFrame()
             Wait(0)
         end
