@@ -295,6 +295,19 @@ function Spatial.ValidEquipment(name, slot)
     return false
 end
 
+function Spatial.GetCompatibleEquipment(name)
+    local slots = {}
+
+    for key in pairs(Config.equipment) do
+        if Spatial.ValidEquipment(name, key) then
+            slots[#slots + 1] = key
+        end
+    end
+
+    table.sort(slots)
+    return slots
+end
+
 function Spatial.GetEquipmentConfig()
     local out = {}
 
