@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useDrag, useDrop } from 'react-dnd';
 import useNuiEvent from '../../hooks/useNuiEvent';
 import { useExitListener } from '../../hooks/useExitListener';
 import { useAppDispatch, useAppSelector } from '../../store';
@@ -34,6 +33,7 @@ type AvidItem = {
   height: number;
   metadata: Record<string, any>;
   avid: { version?: number; grid?: GridPosition; equipped?: string };
+  compatibleEquipment?: string[];
 };
 type GridInventory = {
   id: string | number;
@@ -47,16 +47,17 @@ type GridInventory = {
   items: AvidItem[];
 };
 type AvidState = {
+  character?: { name?: string; sex?: string | number };
   pockets: GridInventory;
   backpack?: GridInventory | null;
   equipment: Record<string, AvidItem>;
   equipmentSlots: Record<string, { label: string }>;
 };
 type ActionResponse = { success: boolean; error?: string; state?: AvidState };
-type DragPayload = { kind: GridName; slot: number; rotated: boolean };
+type DragPayload = { source: 'grid' | 'equipment'; kind?: GridName; slot: number; rotated: boolean; equipmentSlot?: string };
 type Selection = { kind: GridName; slot: number };
-
-const DRAG_TYPE = 'AVID_SPATIAL_ITEM';
+type ViewName = 'inventory' | 'character' | 'storage';
+type ContextState = { x: number; y: number; item: AvidItem; kind: GridName | 'equipment'; equipmentSlot?: string } | null;
 const EQUIPMENT = ['phone', 'radio', 'backpack', 'armor', 'primary', 'secondary', 'melee'];
 const COMBAT = new Set(['armor', 'primary', 'secondary', 'melee']);
 const browser = !(window as any).GetParentResourceName;
@@ -84,19 +85,34 @@ const Cell: React.FC<{
   index: number;
   inventory: GridInventory;
   kind: GridName;
-  onDropItem: (source: GridName, target: GridName, slot: number, x: number, y: number, rotated: boolean) => void;
-}> = ({ index, inventory, kind, onDropItem }) => {
+  dragging: DragPayload | null;
+  onDropItem: (payload: DragPayload, target: GridName, x: number, y: number) => void;
+}> = ({ index, inventory, kind, dragging, onDropItem }) => {
+  const [over, setOver] = useState(false);
   const x = (index % inventory.cols) + 1;
   const y = Math.floor(index / inventory.cols) + 1;
-  const [{ over }, drop] = useDrop<DragPayload, void, { over: boolean }>(() => ({
-    accept: DRAG_TYPE,
-    drop: (source) => onDropItem(source.kind, kind, source.slot, x, y, source.rotated),
-    collect: (monitor) => ({ over: monitor.isOver({ shallow: true }) }),
-  }), [kind, x, y, onDropItem]);
 
-  return <div ref={(node) => {
-        drop(node);
-      }} className={`avid-cell ${over ? 'is-over' : ''}`} />;
+  return (
+    <div
+      className={'avid-cell ' + (over ? 'is-over' : '')}
+      onDragEnter={(event) => {
+        if (!dragging) return;
+        event.preventDefault();
+        setOver(true);
+      }}
+      onDragOver={(event) => {
+        if (!dragging) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+      }}
+      onDragLeave={() => setOver(false)}
+      onDrop={(event) => {
+        event.preventDefault();
+        setOver(false);
+        if (dragging) onDropItem(dragging, kind, x, y);
+      }}
+    />
+  );
 };
 
 const Item: React.FC<{
@@ -106,30 +122,33 @@ const Item: React.FC<{
   muted: boolean;
   onSelect: () => void;
   onUse: () => void;
-}> = ({ item, kind, selected, muted, onSelect, onUse }) => {
+  onDragStart: (payload: DragPayload) => void;
+  onDragEnd: () => void;
+  onContext: (event: React.MouseEvent) => void;
+}> = ({ item, kind, selected, muted, onSelect, onUse, onDragStart, onDragEnd, onContext }) => {
   const grid = item.avid?.grid;
-  const [{ dragging }, drag] = useDrag<DragPayload, void, { dragging: boolean }>(() => ({
-    type: DRAG_TYPE,
-    item: { kind, slot: item.slot, rotated: grid?.rotated === true },
-    canDrag: Boolean(grid),
-    collect: (monitor) => ({ dragging: monitor.isDragging() }),
-  }), [kind, item.slot, grid?.rotated]);
-
   if (!grid) return null;
 
   return (
     <button
-      ref={(node) => {
-        drag(node);
-      }}
-      className={`avid-item ${selected ? 'is-selected' : ''} ${muted ? 'is-muted' : ''} ${dragging ? 'is-dragging' : ''}`}
+      draggable
+      className={'avid-item ' + (selected ? 'is-selected ' : '') + (muted ? 'is-muted' : '')}
       style={{
-        gridColumn: `${grid.x} / span ${item.width}`,
-        gridRow: `${grid.y} / span ${item.height}`,
+        gridColumn: grid.x + ' / span ' + item.width,
+        gridRow: grid.y + ' / span ' + item.height,
       }}
-      onClick={(e) => {
+      onDragStart={(event) => {
+        const payload: DragPayload = { source: 'grid', kind, slot: item.slot, rotated: grid.rotated === true };
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', item.name);
+        onDragStart(payload);
         onSelect();
-        if (e.altKey && kind === 'pockets') onUse();
+      }}
+      onDragEnd={onDragEnd}
+      onContextMenu={onContext}
+      onClick={(event) => {
+        onSelect();
+        if (event.altKey && kind === 'pockets') onUse();
       }}
       onDoubleClick={() => kind === 'pockets' && onUse()}
     >
@@ -147,10 +166,14 @@ const Grid: React.FC<{
   kind: GridName;
   selected: Selection | null;
   search: string;
+  dragging: DragPayload | null;
   onSelect: (selection: Selection) => void;
   onUse: (item: AvidItem, kind: GridName) => void;
-  onDropItem: (source: GridName, target: GridName, slot: number, x: number, y: number, rotated: boolean) => void;
-}> = ({ title, subtitle, inventory, kind, selected, search, onSelect, onUse, onDropItem }) => {
+  onDragStart: (payload: DragPayload) => void;
+  onDragEnd: () => void;
+  onContext: (event: React.MouseEvent, item: AvidItem, kind: GridName) => void;
+  onDropItem: (payload: DragPayload, target: GridName, x: number, y: number) => void;
+}> = ({ title, subtitle, inventory, kind, selected, search, dragging, onSelect, onUse, onDragStart, onDragEnd, onContext, onDropItem }) => {
   const cells = useMemo(() => Array.from({ length: inventory.cols * inventory.rows }), [inventory.cols, inventory.rows]);
   const query = search.trim().toLowerCase();
 
@@ -160,72 +183,121 @@ const Grid: React.FC<{
         <div><small>{kind === 'pockets' ? 'ON PERSON' : 'PORTABLE STORAGE'}</small><h2>{title}</h2><p>{subtitle}</p></div>
         <Weight value={inventory.weight} max={inventory.maxWeight} />
       </header>
-      <div className="avid-grid" style={{
-        gridTemplateColumns: `repeat(${inventory.cols}, 1fr)`,
-        gridTemplateRows: `repeat(${inventory.rows}, 1fr)`,
-      }}>
-        {cells.map((_, index) => <Cell key={index} index={index} inventory={inventory} kind={kind} onDropItem={onDropItem} />)}
-        {inventory.items.filter((i) => !i.avid?.equipped && i.avid?.grid).map((item) => {
-          const match = !query || item.label.toLowerCase().includes(query) || item.name.toLowerCase().includes(query);
-          return <Item
-            key={item.slot}
-            item={item}
-            kind={kind}
-            selected={selected?.kind === kind && selected.slot === item.slot}
-            muted={!match}
-            onSelect={() => onSelect({ kind, slot: item.slot })}
-            onUse={() => onUse(item, kind)}
-          />;
+      <div
+        className="avid-grid"
+        style={{
+          gridTemplateColumns: 'repeat(' + inventory.cols + ', 1fr)',
+          gridTemplateRows: 'repeat(' + inventory.rows + ', 1fr)',
+        }}
+      >
+        {cells.map((_, index) => (
+          <Cell key={index} index={index} inventory={inventory} kind={kind} dragging={dragging} onDropItem={onDropItem} />
+        ))}
+        {inventory.items.filter((entry) => !entry.avid?.equipped && entry.avid?.grid).map((entry) => {
+          const match = !query || entry.label.toLowerCase().includes(query) || entry.name.toLowerCase().includes(query);
+          return (
+            <Item
+              key={entry.slot}
+              item={entry}
+              kind={kind}
+              selected={selected?.kind === kind && selected.slot === entry.slot}
+              muted={!match}
+              onSelect={() => onSelect({ kind, slot: entry.slot })}
+              onUse={() => onUse(entry, kind)}
+              onDragStart={onDragStart}
+              onDragEnd={onDragEnd}
+              onContext={(event) => onContext(event, entry, kind)}
+            />
+          );
         })}
       </div>
-      {!!inventory.overflow?.length && <div className="avid-warning">{inventory.overflow.length} item(s) need free physical space. Nothing was deleted.</div>}
+      {!!inventory.overflow?.length && (
+        <div className="avid-warning">{inventory.overflow.length} item(s) need free physical space. Nothing was deleted.</div>
+      )}
     </section>
   );
 };
 
 const Character: React.FC<{
   state: AvidState;
-  selected?: AvidItem;
-  selectedKind?: GridName;
-  update: (next?: AvidState) => void;
-  error: (message: string) => void;
-}> = ({ state, selected, selectedKind, update, error }) => {
-  const equip = async (equipmentSlot: string) => {
-    if (!selected || selectedKind !== 'pockets') return;
-    const result = await fetchNui<ActionResponse>('avid:equip', { slot: selected.slot, equipmentSlot });
-    if (!result?.success) return error(result?.error || 'Unable to equip');
-    update(result.state);
-  };
-
-  const unequip = async (equipmentSlot: string) => {
-    const result = await fetchNui<ActionResponse>('avid:unequip', { equipmentSlot });
-    if (!result?.success) return error(result?.error || 'Unable to unequip');
-    update(result.state);
-  };
+  dragging: DragPayload | null;
+  onEquipDrop: (slotName: string, payload: DragPayload) => void;
+  onUnequip: (slotName: string) => void;
+  onDragStart: (payload: DragPayload) => void;
+  onDragEnd: () => void;
+  onContext: (event: React.MouseEvent, item: AvidItem, equipmentSlot: string) => void;
+}> = ({ state, dragging, onEquipDrop, onUnequip, onDragStart, onDragEnd, onContext }) => {
+  const characterName = state.character?.name || 'Your Character';
 
   return (
     <section className="avid-panel avid-character">
-      <header className="avid-panel-head"><div><small>CHARACTER</small><h2>Equipped</h2><p>What your character actually has ready.</p></div></header>
+      <header className="avid-panel-head">
+        <div><small>CHARACTER</small><h2>{characterName}</h2><p>What your character actually has ready.</p></div>
+      </header>
       <div className="avid-character-body">
-        <div className="avid-person" aria-hidden="true"><i /><b /><span /><em /></div>
+        <div className="avid-avatar" aria-label={characterName}>
+          <div className="avatar-hair" />
+          <div className="avatar-head"><i /><b /></div>
+          <div className="avatar-neck" />
+          <div className="avatar-torso"><span /></div>
+          <div className="avatar-arm left" />
+          <div className="avatar-arm right" />
+          <div className="avatar-leg left" />
+          <div className="avatar-leg right" />
+          <div className="avatar-shoe left" />
+          <div className="avatar-shoe right" />
+          <small>{characterName}</small>
+        </div>
+
         <div className="avid-equipment">
           {EQUIPMENT.map((slotName) => {
-            const item = state.equipment[slotName];
-            const combatEmpty = COMBAT.has(slotName) && !item;
+            const equippedItem = state.equipment[slotName];
+            const compatible = dragging?.source === 'grid' && dragging.kind === 'pockets'
+              ? state.pockets.items.find((entry) => entry.slot === dragging.slot)?.compatibleEquipment?.includes(slotName)
+              : false;
+            const combatEmpty = COMBAT.has(slotName) && !equippedItem;
+
             return (
               <button
                 key={slotName}
-                className={`${item ? 'has-item' : ''} ${combatEmpty ? 'is-subdued' : ''}`}
-                onClick={() => item ? unequip(slotName) : equip(slotName)}
+                draggable={Boolean(equippedItem)}
+                className={
+                  (equippedItem ? 'has-item ' : '') +
+                  (combatEmpty ? 'is-subdued ' : '') +
+                  (compatible ? 'is-compatible' : '')
+                }
+                onDragStart={(event) => {
+                  if (!equippedItem) {
+                    event.preventDefault();
+                    return;
+                  }
+                  event.dataTransfer.effectAllowed = 'move';
+                  onDragStart({ source: 'equipment', slot: equippedItem.slot, rotated: false, equipmentSlot: slotName });
+                }}
+                onDragEnd={onDragEnd}
+                onDragOver={(event) => {
+                  if (compatible) {
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = 'move';
+                  }
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  if (compatible && dragging) onEquipDrop(slotName, dragging);
+                }}
+                onContextMenu={(event) => equippedItem && onContext(event, equippedItem, slotName)}
+                onDoubleClick={() => equippedItem && onUnequip(slotName)}
               >
                 <small>{state.equipmentSlots[slotName]?.label || slotName}</small>
-                {item ? <><img src={itemImage(item)} alt="" /><span>{item.label}</span></> : <span>Empty</span>}
+                {equippedItem
+                  ? <><img src={itemImage(equippedItem)} alt="" /><span>{equippedItem.label}</span></>
+                  : <span>{compatible ? 'Drop to equip' : 'Empty'}</span>}
               </button>
             );
           })}
         </div>
       </div>
-      <footer>Everyday carry first. Tactical gear only steps forward when your character actually has it.</footer>
+      <footer>Drag compatible items onto equipment slots. Double-click equipped items to return them to your pockets.</footer>
     </section>
   );
 };
@@ -250,6 +322,54 @@ const Details: React.FC<{
     </div> : <div className="avid-empty-details">Drag items to repack. Press R to rotate the selected item.</div>}
   </section>
 );
+
+
+const ContextMenu: React.FC<{
+  context: ContextState;
+  onClose: () => void;
+  onUse: () => void;
+  onGive: () => void;
+  onRotate: () => void;
+  onEquip: (slot: string) => void;
+  onUnequip: () => void;
+}> = ({ context, onClose, onUse, onGive, onRotate, onEquip, onUnequip }) => {
+  if (!context) return null;
+
+  const equipment = context.item.compatibleEquipment || [];
+
+  return (
+    <div className="avid-context-backdrop" onMouseDown={onClose}>
+      <div
+        className="avid-context-menu"
+        style={{ left: context.x, top: context.y }}
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className="avid-context-head">
+          <img src={itemImage(context.item)} alt="" />
+          <div><strong>{context.item.label}</strong><small>{context.item.name}</small></div>
+        </div>
+        <div className="avid-context-meta">
+          <span>{context.item.width}x{context.item.height}</span>
+          <span>{kg(context.item.weight)}</span>
+          {context.item.metadata?.durability !== undefined && <span>Durability {String(context.item.metadata.durability)}</span>}
+        </div>
+
+        {context.kind === 'equipment' ? (
+          <button onClick={onUnequip}>Return to pockets</button>
+        ) : (
+          <>
+            <button onClick={onUse} disabled={context.kind !== 'pockets'}>Use</button>
+            <button onClick={onGive} disabled={context.kind !== 'pockets'}>Give</button>
+            <button onClick={onRotate}>Rotate</button>
+            {context.kind === 'pockets' && equipment.map((slot) => (
+              <button key={slot} onClick={() => onEquip(slot)}>Equip · {slot}</button>
+            ))}
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const AvidInventory: React.FC = () => {
   const dispatch = useAppDispatch();
