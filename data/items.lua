@@ -222,4 +222,74 @@ return {
 		label = 'Scrap Metal',
 		weight = 80,
 	},
+
+	-- Trailhead outdoors system
+	['trail_rod_basic'] = {
+		label = 'Starter Rod & Reel', weight = 1800, stack = false, close = true, consume = 0,
+		client = { export = 'avid-trailhead.useFishingRod' }
+	},
+	['trail_rod_freshwater'] = {
+		label = 'Freshwater Rod & Reel', weight = 1650, stack = false, close = true, consume = 0,
+		client = { export = 'avid-trailhead.useFishingRod' }
+	},
+	['trail_rod_surf'] = {
+		label = 'Surf Rod & Reel', weight = 2200, stack = false, close = true, consume = 0,
+		client = { export = 'avid-trailhead.useFishingRod' }
+	},
+	['trail_bait_worms'] = { label = 'Worm Bait', weight = 45, stack = true, close = true },
+	['trail_bait_shrimp'] = { label = 'Shrimp Bait', weight = 55, stack = true, close = true },
+	['trail_lure_spinner'] = { label = 'Spinner Lure', weight = 25, stack = true, close = true },
+	['trail_tackle_box'] = { label = 'Tackle Box', weight = 850, stack = false },
+	['trail_fish'] = { label = 'Fresh Catch', weight = 900, stack = false, close = false, consume = 0 },
+
+	['trail_binoculars'] = {
+		label = 'Trail Binoculars', weight = 620, stack = false, close = true, consume = 0,
+		client = { export = 'avid-trailhead.useBinoculars' }
+	},
+	['trail_field_knife'] = { label = 'Field Knife', weight = 350, stack = false, close = true, consume = 0 },
+	['trail_animal_call'] = {
+		label = 'Game Call', weight = 120, stack = false, close = true, consume = 0,
+		client = { export = 'avid-trailhead.useAnimalCall' }
+	},
+	['trail_hunting_pack'] = { label = 'Hunting Pack', weight = 900, stack = false },
+	['trail_game_meat'] = { label = 'Game Meat', weight = 650, stack = true, close = false },
+	['trail_game_hide'] = { label = 'Game Hide', weight = 1200, stack = false, close = false },
+	['trail_hunting_trophy'] = { label = 'Hunting Trophy', weight = 800, stack = false, close = false },
+
+	['trail_metal_detector'] = {
+		label = 'Metal Detector', weight = 1500, stack = false, close = true, consume = 0,
+		client = { export = 'avid-trailhead.useMetalDetector' }
+	},
+	['trail_sand_scoop'] = { label = 'Sand Scoop', weight = 700, stack = false, close = true, consume = 0 },
+	['trail_detector_battery'] = { label = 'Detector Battery', weight = 180, stack = true, close = true },
+	['trail_detector_find'] = { label = 'Detector Find', weight = 120, stack = false, close = false, consume = 0 },
+
+	['trail_tent'] = {
+		label = 'Two-Person Tent', weight = 4200, stack = false, close = true, consume = 0,
+		client = { export = 'avid-trailhead.useCampGear' }
+	},
+	['trail_sleeping_bag'] = {
+		label = 'Sleeping Bag', weight = 2100, stack = false, close = true, consume = 0,
+		client = { export = 'avid-trailhead.useCampGear' }
+	},
+	['trail_camp_chair'] = {
+		label = 'Camp Chair', weight = 2300, stack = false, close = true, consume = 0,
+		client = { export = 'avid-trailhead.useCampGear' }
+	},
+	['trail_camp_lantern'] = {
+		label = 'Camp Lantern', weight = 650, stack = false, close = true, consume = 0,
+		client = { export = 'avid-trailhead.useCampGear' }
+	},
+	['trail_cooler'] = {
+		label = 'Trail Cooler', weight = 2600, stack = false, close = true, consume = 0,
+		client = { export = 'avid-trailhead.useCampGear' }
+	},
+	['trail_campfire_kit'] = {
+		label = 'Campfire Kit', weight = 1100, stack = true, close = true, consume = 0,
+		client = { export = 'avid-trailhead.useCampGear' }
+	},
+
+	['trail_compass'] = { label = 'Trail Compass', weight = 120, stack = false },
+	['trail_flashlight'] = { label = 'Outdoor Flashlight', weight = 260, stack = false },
+	['trail_hiking_pack'] = { label = 'Hiking Pack', weight = 850, stack = false },
 }
