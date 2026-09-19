@@ -282,7 +282,7 @@ function client.openInventory(inv, data)
     SetNuiFocusKeepInput(true)
     closeTrunk()
 
-    if client.screenblur then Utils.blurIn() end
+    TriggerEvent('ox_inventory:avid:preview', true)
 
     currentInventory = right or defaultInventory
     left.items = PlayerData.inventory
@@ -339,7 +339,7 @@ RegisterNetEvent('ox_inventory:forceOpenInventory', function(left, right)
 	SetNuiFocusKeepInput(true)
 	closeTrunk()
 
-	if client.screenblur then Utils.blurIn() end
+	TriggerEvent('ox_inventory:avid:preview', true)
 
 	currentInventory = right or defaultInventory
 	currentInventory.ignoreSecurityChecks = true
@@ -896,6 +896,7 @@ function client.closeInventory()
 		invOpen = nil
 		SetNuiFocus(false, false)
 		SetNuiFocusKeepInput(false)
+		TriggerEvent('ox_inventory:avid:preview', false)
 		Utils.blurOut()
 		closeTrunk()
 		SendNUIMessage({ action = 'closeInventory' })
@@ -1600,7 +1601,7 @@ RegisterNetEvent('ox_inventory:viewInventory', function(left, right)
 	SetNuiFocusKeepInput(true)
 	closeTrunk()
 
-	if client.screenblur then Utils.blurIn() end
+	TriggerEvent('ox_inventory:avid:preview', true)
 
 	currentInventory = right or defaultInventory
 	currentInventory.ignoreSecurityChecks = true
