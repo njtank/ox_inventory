@@ -1,0 +1,50 @@
+name: Build Avid Inventory UI
+
+on:
+  push:
+    branches:
+      - feature/avid-inventory-v1
+    paths:
+      - 'web/src/**'
+      - 'web/package.json'
+      - 'web/bun.lock'
+      - '.github/workflows/avid-inventory-build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: feature/avid-inventory-v1
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        working-directory: web
+        run: bun install --frozen-lockfile
+
+      - name: Build NUI
+        working-directory: web
+        run: bun run build
+
+      - name: Commit compiled UI
+        run: |
+          git config user.name "Avid RP Build"
+          git config user.email "actions@users.noreply.github.com"
+          git add -f web/build
+          if git diff --cached --quiet; then
+            echo "No compiled UI changes."
+            exit 0
+          fi
+          git commit -m "build(avid): compile inventory NUI"
+          git push origin HEAD:feature/avid-inventory-v1
