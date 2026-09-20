@@ -1163,3 +1163,168 @@ $line:rgba(102,217,232,.25);
     grid-template-columns:205px minmax(500px,1.18fr) minmax(340px,.92fr)!important;
   }
 }
+
+
+/* -------------------------------------------------------------------------- */
+/* Player-to-player search / inspection                                        */
+/* -------------------------------------------------------------------------- */
+
+.avid-player-search{
+  grid-template-columns:230px minmax(540px,1.22fr) minmax(400px,.95fr)!important;
+}
+
+.avid-search-column{
+  min-width:0;
+  max-height:calc(100vh - 110px);
+  display:flex;
+  flex-direction:column;
+  gap:.55rem;
+  overflow-y:auto;
+  padding-right:2px;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(102,217,232,.26) transparent;
+}
+
+.avid-search-equipment{
+  flex:0 0 auto;
+  background:linear-gradient(180deg,rgba(8,19,25,.32),rgba(4,11,15,.40))!important;
+  border-color:rgba(102,217,232,.28)!important;
+}
+
+.avid-search-equipment>.avid-panel-head{
+  min-height:58px!important;
+  padding:.58rem .72rem .48rem!important;
+  background:rgba(3,11,15,.24)!important;
+}
+
+.avid-search-equipment>.avid-panel-head h2{
+  max-width:260px;
+  overflow:hidden;
+  font-size:.92rem!important;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.avid-search-equipment>.avid-panel-head p{
+  margin-top:.08rem!important;
+  color:#6e858b!important;
+  font-size:.46rem!important;
+}
+
+.avid-search-equipment-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:5px;
+  padding:.55rem;
+}
+
+.avid-search-equipment-grid button{
+  position:relative;
+  min-height:68px;
+  display:grid;
+  grid-template-columns:46px minmax(0,1fr);
+  grid-template-rows:17px 1fr;
+  gap:0 .48rem;
+  padding:.42rem .46rem;
+  overflow:hidden;
+  border:1px solid rgba(102,217,232,.14);
+  border-radius:4px;
+  background:rgba(5,15,20,.20);
+  color:#d4e8ea;
+  text-align:left;
+  cursor:context-menu;
+  transition:border-color .13s ease,background .13s ease,transform .13s ease;
+}
+
+.avid-search-equipment-grid button:hover{
+  transform:translateY(-1px);
+  border-color:rgba(219,160,111,.62);
+  background:rgba(219,160,111,.035);
+}
+
+.avid-search-equipment-grid button small{
+  grid-column:1/-1;
+  overflow:hidden;
+  color:#71888e;
+  font-size:.41rem;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.avid-search-equipment-grid button img{
+  width:43px;
+  height:39px;
+  object-fit:contain;
+}
+
+.avid-search-equipment-grid button span{
+  align-self:center;
+  overflow:hidden;
+  font-size:.53rem;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.avid-search-equipment-grid button em{
+  position:absolute;
+  right:5px;
+  bottom:4px;
+  color:rgba(219,160,111,.72);
+  font-size:.38rem;
+  font-style:normal;
+  letter-spacing:.12em;
+}
+
+.avid-search-empty{
+  padding:.9rem .75rem 1rem;
+  color:#587078;
+  font-size:.5rem;
+  text-align:center;
+}
+
+.avid-grid-panel.is-searched,
+.avid-grid-panel.is-searchedBackpack{
+  width:100%;
+  flex:0 0 auto;
+  border-color:rgba(102,217,232,.22)!important;
+  background:linear-gradient(180deg,rgba(8,19,25,.29),rgba(4,11,15,.37))!important;
+}
+
+.avid-grid-panel.is-searched .avid-grid-head,
+.avid-grid-panel.is-searchedBackpack .avid-grid-head{
+  grid-template-columns:minmax(150px,1fr) 120px!important;
+}
+
+.avid-grid-panel.is-searched .avid-grid-search,
+.avid-grid-panel.is-searchedBackpack .avid-grid-search{
+  display:none!important;
+}
+
+.avid-grid-panel.is-searched .avid-item:hover,
+.avid-grid-panel.is-searchedBackpack .avid-item:hover{
+  border-color:rgba(219,160,111,.72)!important;
+  box-shadow:0 7px 18px rgba(0,0,0,.12),inset 0 0 16px rgba(219,160,111,.025)!important;
+}
+
+.avid-context-menu>button.is-confiscate{
+  border-color:rgba(219,160,111,.34);
+  color:#efc7a8;
+}
+
+.avid-context-menu>button.is-confiscate:hover{
+  border-color:rgba(219,160,111,.72);
+  background:rgba(219,160,111,.07);
+  color:#ffe3cd;
+}
+
+@media(max-width:1500px){
+  .avid-player-search{
+    grid-template-columns:205px minmax(470px,1.15fr) minmax(350px,.90fr)!important;
+  }
+
+  .avid-search-equipment-grid{
+    grid-template-columns:1fr;
+  }
+}
