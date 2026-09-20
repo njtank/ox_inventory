@@ -182,7 +182,9 @@ local function loadInventoryData(data, player, ignoreSecurityChecks)
             inventory = Inventory.Create(data.id, plate, data.type, storage[1], 0, storage[2], false, nil, nil, dbId)
 		end
 	elseif data.type == 'policeevidence' then
-		inventory = Inventory.Create(data.id, locale('police_evidence'), data.type, 100, 0, 100000, false)
+        local caseId = tostring(data.id):gsub('^evidence%-', '')
+        local label = caseId ~= '' and ('Evidence · %s'):format(caseId) or locale('police_evidence')
+		inventory = Inventory.Create(data.id, label, data.type, 100, 0, 100000, false)
 	else
 		local stash = RegisteredStashes[data.id]
 
