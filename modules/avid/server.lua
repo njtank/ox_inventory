@@ -401,9 +401,6 @@ return function(Inventory)
         local inv = Inventory(source)
         if not inv then return { success = false, error = 'invalid_inventory' } end
 
-        local searchOk, searchError = validateSearchTransfer(source, player, inv, inv)
-        if not searchOk then return { success = false, error = searchError } end
-
         local slot = tonumber(data.slot)
         local item = inv.items[slot]
         if not item or not (item.avid and item.avid.equipped) then
@@ -656,6 +653,9 @@ return function(Inventory)
 
         if not inv then return { success = false, error = 'invalid_inventory' } end
 
+        local searchOk, searchError = validateSearchTransfer(source, player, inv, inv)
+        if not searchOk then return { success = false, error = searchError } end
+
         local slot = tonumber(data.slot)
         local item = slot and inv.items[slot]
 
@@ -690,6 +690,78 @@ return function(Inventory)
 
         sync(inv, slot)
         sync(inv, newSlot)
+
+        return { success = true, state = state(source) }
+    end)
+
+    lib.callback.register('ox_inventory:avid:confiscateEquipped', function(source, data)
+        if type(data) ~= 'table' then return { success = false, error = 'invalid_payload' } end
+
+        local player = Inventory(source)
+        local target = player and searchedInventory(player)
+
+        if not player or not target then
+            return { success = false, error = 'search_target_missing' }
+        end
+
+        local searchOk, searchError = validateSearchSession(source, player, target)
+        if not searchOk then return { success = false, error = searchError } end
+
+        local equipmentSlot = tostring(data.equipmentSlot or '')
+        local targetEquipment = equipped(target)
+        local equippedItem = targetEquipment[equipmentSlot]
+
+        if not equippedItem then return { success = false, error = 'nothing_equipped' } end
+
+        local fromSlot = tonumber(equippedItem.slot)
+        local item = fromSlot and target.items[fromSlot]
+
+        if not item then return { success = false, error = 'item_missing' } end
+
+        if player.maxWeight and player.weight + (item.weight or 0) > player.maxWeight then
+            return { success = false, error = 'inventory_overweight' }
+        end
+
+        local placement = Spatial.FirstFit(player, item.name)
+        if not placement then return { success = false, error = 'no_grid_space' } end
+
+        local targetSlot = Inventory.GetEmptySlot(player)
+        if not targetSlot then return { success = false, error = 'inventory_full' } end
+
+        local hooked, hookError = transferHook(source, target, player, item, targetSlot, item.count, 'move')
+        if not hooked then return { success = false, error = hookError } end
+
+        local count = item.count
+        local metadata = table.clone(item.metadata or {})
+        local wasWeapon = target.weapon == fromSlot
+
+        local removed, removeError = Inventory.RemoveItem(target, item.name, count, metadata, fromSlot, false, true)
+        if not removed then return { success = false, error = removeError or 'remove_failed' } end
+
+        local added, response = Inventory.AddItem(player, item.name, count, metadata, targetSlot)
+
+        if not added then
+            local restored, restoreResponse = Inventory.AddItem(target, item.name, count, metadata, fromSlot)
+
+            if restored then
+                local restoredSlot = type(restoreResponse) == 'table' and restoreResponse.slot or fromSlot
+                Spatial.SetEquipped(target, restoredSlot, equipmentSlot)
+                sync(target, restoredSlot)
+            end
+
+            return { success = false, error = response or 'confiscate_failed' }
+        end
+
+        local newSlot = type(response) == 'table' and response.slot or targetSlot
+        Spatial.SetGrid(player, newSlot, placement.x, placement.y, false)
+
+        if wasWeapon then
+            target.weapon = nil
+            TriggerClientEvent('ox_inventory:disarm', target.id)
+        end
+
+        sync(target, fromSlot)
+        sync(player, newSlot)
 
         return { success = true, state = state(source) }
     end)
