@@ -597,13 +597,34 @@ return function(Inventory)
         if not player then return { success = false, error = 'invalid_inventory' } end
 
         local backpack = equippedBackpack(player)
-        local fromName = data.from == 'backpack' and 'backpack' or 'pockets'
-        local toName = fromName == 'pockets' and 'backpack' or 'pockets'
-        local fromInv = fromName == 'pockets' and player or backpack
-        local toInv = toName == 'pockets' and player or backpack
+        local external = externalInventory(player)
+        local fromName = data.from == 'external' and 'external'
+            or data.from == 'backpack' and 'backpack'
+            or 'pockets'
+        local toName
+
+        if external then
+            if fromName == 'external' then
+                toName = 'pockets'
+            elseif fromName == 'pockets' then
+                toName = 'external'
+            else
+                toName = 'pockets'
+            end
+        else
+            toName = fromName == 'pockets' and 'backpack' or 'pockets'
+        end
+
+        local fromInv = resolveInventory(player, fromName)
+        local toInv = resolveInventory(player, toName)
 
         if not fromInv then return { success = false, error = 'invalid_inventory' } end
-        if not toInv then return { success = false, error = 'no_backpack_equipped' } end
+        if not toInv then
+            return {
+                success = false,
+                error = toName == 'backpack' and 'no_backpack_equipped' or 'invalid_inventory'
+            }
+        end
 
         local slot = tonumber(data.slot)
         local item = slot and fromInv.items[slot]
@@ -614,8 +635,9 @@ return function(Inventory)
             return { success = false, error = 'nested_backpacks_disabled' }
         end
 
-        -- Quick move transfers the full stack. Check exact destination weight before
-        -- touching the source inventory so failed moves never disturb item placement.
+        local allowed, restriction = validateContainerTransfer(player, fromInv, toInv, item)
+        if not allowed then return { success = false, error = restriction } end
+
         if toInv.maxWeight and toInv.weight + (item.weight or 0) > toInv.maxWeight then
             return { success = false, error = 'inventory_overweight' }
         end
@@ -625,6 +647,9 @@ return function(Inventory)
 
         local targetSlot = Inventory.GetEmptySlot(toInv)
         if not targetSlot then return { success = false, error = 'inventory_full' } end
+
+        local hooked, hookError = transferHook(source, fromInv, toInv, item, targetSlot, item.count, 'move')
+        if not hooked then return { success = false, error = hookError } end
 
         local count = item.count
         local metadata = table.clone(item.metadata or {})
@@ -649,6 +674,7 @@ return function(Inventory)
 
         local newSlot = type(response) == 'table' and response.slot or targetSlot
         Spatial.SetGrid(toInv, newSlot, placement.x, placement.y, false)
+        sync(fromInv, slot)
         sync(toInv, newSlot)
 
         if backpack and (fromInv == backpack or toInv == backpack) then
@@ -671,33 +697,42 @@ return function(Inventory)
         if not player then return { success = false, error = 'invalid_inventory' } end
 
         local backpack = equippedBackpack(player)
-        local fromInv = data.from == 'pockets' and player or data.from == 'backpack' and backpack
-        local toInv = data.to == 'pockets' and player or data.to == 'backpack' and backpack
+        local fromInv = resolveInventory(player, data.from)
+        local toInv = resolveInventory(player, data.to)
 
         if not fromInv or not toInv or fromInv == toInv then
             return { success = false, error = 'invalid_inventory' }
         end
 
         local slot = tonumber(data.slot)
-        local item = fromInv.items[slot]
+        local item = slot and fromInv.items[slot]
+
         if not item then return { success = false, error = 'item_missing' } end
         if item.avid and item.avid.equipped then return { success = false, error = 'unequip_first' } end
         if data.to == 'backpack' and item.name:find('^backpack_') then
             return { success = false, error = 'nested_backpacks_disabled' }
         end
 
+        local allowed, restriction = validateContainerTransfer(player, fromInv, toInv, item)
+        if not allowed then return { success = false, error = restriction } end
+
         if toInv.maxWeight and toInv.weight + (item.weight or 0) > toInv.maxWeight then
             return { success = false, error = 'inventory_overweight' }
         end
 
-        local ok, err = Spatial.CanPlace(toInv, item.name, tonumber(data.x), tonumber(data.y), false)
+        local x, y = tonumber(data.x), tonumber(data.y)
+        local ok, err = Spatial.CanPlace(toInv, item.name, x, y, false)
         if not ok then return { success = false, error = err } end
 
         local targetSlot = Inventory.GetEmptySlot(toInv)
         if not targetSlot then return { success = false, error = 'inventory_full' } end
 
-        local count = math.max(1, math.min(tonumber(data.count) or item.count, item.count))
+        local count = math.max(1, math.min(math.floor(tonumber(data.count) or item.count), item.count))
+        local hooked, hookError = transferHook(source, fromInv, toInv, item, targetSlot, count, 'move')
+        if not hooked then return { success = false, error = hookError } end
+
         local metadata = table.clone(item.metadata or {})
+        local oldGrid = item.avid and item.avid.grid and table.clone(item.avid.grid)
 
         local removed, removeErr = Inventory.RemoveItem(fromInv, item.name, count, metadata, slot, false, true)
         if not removed then return { success = false, error = removeErr or 'remove_failed' } end
@@ -705,12 +740,20 @@ return function(Inventory)
         local added, response = Inventory.AddItem(toInv, item.name, count, metadata, targetSlot)
 
         if not added then
-            Inventory.AddItem(fromInv, item.name, count, metadata, slot)
+            local restored, restoreResponse = Inventory.AddItem(fromInv, item.name, count, metadata, slot)
+
+            if restored and oldGrid then
+                local restoredSlot = type(restoreResponse) == 'table' and restoreResponse.slot or slot
+                Spatial.SetGrid(fromInv, restoredSlot, oldGrid.x, oldGrid.y, false)
+                sync(fromInv, restoredSlot)
+            end
+
             return { success = false, error = response or 'add_failed' }
         end
 
         local newSlot = type(response) == 'table' and response.slot or targetSlot
-        Spatial.SetGrid(toInv, newSlot, tonumber(data.x), tonumber(data.y), false)
+        Spatial.SetGrid(toInv, newSlot, x, y, false)
+        sync(fromInv, slot)
         sync(toInv, newSlot)
 
         if backpack and (fromInv == backpack or toInv == backpack) then
