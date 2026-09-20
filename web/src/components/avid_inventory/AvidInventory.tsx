@@ -21,7 +21,7 @@ import { closeTooltip } from '../../store/tooltip';
 import { closeContextMenu } from '../../store/contextMenu';
 import './avid-inventory.scss';
 
-type GridName = 'pockets' | 'backpack';
+type GridName = 'pockets' | 'backpack' | 'external';
 type GridPosition = { x: number; y: number; rotated?: boolean };
 
 type AvidItem = {
@@ -53,6 +53,7 @@ type AvidState = {
   character?: { name?: string; sex?: string | number };
   pockets: GridInventory;
   backpack?: GridInventory | null;
+  external?: GridInventory | null;
   equipment: Record<string, AvidItem>;
   equipmentSlots: Record<string, { label: string }>;
   ground?: {
@@ -132,10 +133,10 @@ const Grid: React.FC<{
   const query = search.trim().toLowerCase();
 
   return (
-    <section className="avid-panel avid-grid-panel">
+    <section className={'avid-panel avid-grid-panel is-' + kind}>
       <header className="avid-panel-head avid-grid-head">
         <div className="avid-grid-title">
-          <small>{kind === 'pockets' ? 'ON PERSON' : 'PORTABLE STORAGE'}</small>
+          <small>{kind === 'pockets' ? 'ON PERSON' : kind === 'external' ? 'EXTERNAL STORAGE' : 'PORTABLE STORAGE'}</small>
           <h2>{title}</h2>
           <p>{subtitle}</p>
         </div>
@@ -417,9 +418,7 @@ const ContextMenu: React.FC<{
           <>
             <button onClick={onUse} disabled={context.kind !== 'pockets'}>Use</button>
             <button onClick={onGive} disabled={context.kind !== 'pockets'}>Give</button>
-            <button onClick={onQuickMove}>
-              {context.kind === 'pockets' ? 'Move to backpack' : 'Move to pockets'}
-            </button>
+            <button onClick={onQuickMove}>Quick Move</button>
             {context.item.count > 1 && (
               <div className="avid-split-control">
                 <div>
@@ -436,7 +435,7 @@ const ContextMenu: React.FC<{
                 <button onClick={() => onSplit(splitAmount)}>Split {splitAmount}</button>
               </div>
             )}
-            <button className="is-drop" onClick={onDrop}>Drop on ground</button>
+            {context.kind !== 'external' && <button className="is-drop" onClick={onDrop}>Drop on ground</button>}
 
             {context.kind === 'pockets' && equipment.map((slot) => (
               <button key={slot} onClick={() => onEquip(slot)}>Equip · {slot}</button>
@@ -522,7 +521,7 @@ const AvidInventory: React.FC = () => {
   }, [refresh]);
 
   const dropSpecificItem = useCallback(async (entry?: AvidItem, kind?: GridName | 'equipment') => {
-    if (!entry || kind === 'equipment') return;
+    if (!entry || kind === 'equipment' || kind === 'external') return;
 
     const result = await fetchNui<ActionResponse>('avid:drop', {
       from: kind,
@@ -771,7 +770,7 @@ const AvidInventory: React.FC = () => {
         const targetSlot = Number(targetItem.dataset.itemSlot);
 
         if (
-          (targetKind === 'pockets' || targetKind === 'backpack') &&
+          (targetKind === 'pockets' || targetKind === 'backpack' || targetKind === 'external') &&
           targetSlot > 0 &&
           !(session.payload.kind === targetKind && session.payload.slot === targetSlot)
         ) {
@@ -794,7 +793,7 @@ const AvidInventory: React.FC = () => {
           const rows = Number(grid.dataset.gridRows);
           const kind = grid.dataset.gridContainer as GridName;
 
-          if (!cols || !rows || (kind !== 'pockets' && kind !== 'backpack')) break;
+          if (!cols || !rows || (kind !== 'pockets' && kind !== 'backpack' && kind !== 'external')) break;
 
           const cellWidth = rect.width / cols;
           const cellHeight = rect.height / rows;
@@ -838,11 +837,12 @@ const AvidInventory: React.FC = () => {
     return () => window.removeEventListener('keydown', listener);
   }, [visible, context]);
 
-  const externalOpen = Boolean(
+  const stockExternalOpen = Boolean(
     rightInventory?.id &&
     rightInventory.type &&
     rightInventory.type !== 'newdrop' &&
-    rightInventory.type !== 'drop'
+    rightInventory.type !== 'drop' &&
+    !state?.external
   );
 
   const gridProps = {
@@ -877,6 +877,22 @@ const AvidInventory: React.FC = () => {
     />
   ) : null;
 
+  const externalPanel = state?.external ? (
+    <Grid
+      title={state.external.label || 'Storage'}
+      subtitle={
+        state.external.type === 'trunk' ? 'Vehicle cargo' :
+        state.external.type === 'glovebox' ? 'Vehicle glovebox' :
+        state.external.type === 'policeevidence' ? 'Evidence storage' :
+        state.external.type === 'dumpster' ? 'Container storage' :
+        'External storage'
+      }
+      inventory={state.external}
+      kind="external"
+      {...gridProps}
+    />
+  ) : null;
+
   const groundPanel = state?.ground ? (
     <GroundPanel
       ground={state.ground}
@@ -907,16 +923,32 @@ const AvidInventory: React.FC = () => {
 
         {!state ? (
           <div className="avid-loading">Loading Avid inventory…</div>
-        ) : externalOpen ? (
+        ) : state.external ? (
+          <div className="avid-layout avid-spatial-external">
+            {equipmentPanel}
+
+            <Grid
+              title="Pockets"
+              subtitle="What you are carrying right now."
+              inventory={state.pockets}
+              kind="pockets"
+              {...gridProps}
+            />
+
+            <div className="avid-right">
+              {externalPanel}
+            </div>
+          </div>
+        ) : stockExternalOpen ? (
           <div className="avid-external-layout">
             {equipmentPanel}
 
             <section className="avid-panel avid-stock-transfer">
               <header className="avid-panel-head">
                 <div>
-                  <small>STORAGE</small>
-                  <h2>{rightInventory.label || 'External Storage'}</h2>
-                  <p>External storage remains compatible with ox while its spatial layout is migrated.</p>
+                  <small>COMPATIBILITY VIEW</small>
+                  <h2>{rightInventory.label || 'External Inventory'}</h2>
+                  <p>Special inventory behavior is still handled by ox.</p>
                 </div>
               </header>
               <div className="avid-stock-inner">
