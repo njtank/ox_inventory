@@ -1129,3 +1129,37 @@ $line:rgba(102,217,232,.25);
     grid-template-columns:205px minmax(500px,1.35fr) minmax(305px,.78fr)!important;
   }
 }
+
+
+/* Spatial external storage */
+.avid-spatial-external{
+  grid-template-columns:230px minmax(560px,1.25fr) minmax(390px,1fr)!important;
+}
+.avid-spatial-external .avid-right{
+  min-width:0;
+}
+.avid-grid-panel.is-external{
+  width:100%;
+  animation:avid-storage-reveal 220ms cubic-bezier(.2,.75,.25,1) both;
+  border-color:rgba(102,217,232,.27)!important;
+}
+.avid-grid-panel.is-external .avid-grid-head{
+  grid-template-columns:minmax(150px,1fr) 120px!important;
+}
+.avid-grid-panel.is-external .avid-grid-search{
+  display:none!important;
+}
+.avid-grid-panel.is-external .avid-grid{
+  width:calc(100% - 1.2rem)!important;
+}
+.avid-grid-panel.is-external .avid-cell{
+  border-color:rgba(102,217,232,.12)!important;
+}
+.avid-grid-panel.is-external .avid-item:hover{
+  border-color:rgba(102,217,232,.78)!important;
+}
+@media(max-width:1500px){
+  .avid-spatial-external{
+    grid-template-columns:205px minmax(500px,1.18fr) minmax(340px,.92fr)!important;
+  }
+}
