@@ -21,7 +21,7 @@ import { closeTooltip } from '../../store/tooltip';
 import { closeContextMenu } from '../../store/contextMenu';
 import './avid-inventory.scss';
 
-type GridName = 'pockets' | 'backpack' | 'external';
+type GridName = 'pockets' | 'backpack' | 'external' | 'searched' | 'searchedBackpack';
 type GridPosition = { x: number; y: number; rotated?: boolean };
 
 type AvidItem = {
@@ -54,6 +54,13 @@ type AvidState = {
   pockets: GridInventory;
   backpack?: GridInventory | null;
   external?: GridInventory | null;
+  searched?: {
+    id: string | number;
+    name: string;
+    pockets: GridInventory;
+    equipment: Record<string, AvidItem>;
+    backpack?: GridInventory | null;
+  } | null;
   equipment: Record<string, AvidItem>;
   equipmentSlots: Record<string, { label: string }>;
   ground?: {
@@ -79,7 +86,7 @@ type ContextState = {
   x: number;
   y: number;
   item: AvidItem;
-  kind: GridName | 'equipment';
+  kind: GridName | 'equipment' | 'searchedEquipment';
   equipmentSlot?: string;
 } | null;
 type PointerSession = {
@@ -136,7 +143,13 @@ const Grid: React.FC<{
     <section className={'avid-panel avid-grid-panel is-' + kind}>
       <header className="avid-panel-head avid-grid-head">
         <div className="avid-grid-title">
-          <small>{kind === 'pockets' ? 'ON PERSON' : kind === 'external' ? 'EXTERNAL STORAGE' : 'PORTABLE STORAGE'}</small>
+          <small>{
+            kind === 'pockets' ? 'ON PERSON' :
+            kind === 'external' ? 'EXTERNAL STORAGE' :
+            kind === 'searched' ? 'SEARCHED PERSON' :
+            kind === 'searchedBackpack' ? 'SEARCHED BAG' :
+            'PORTABLE STORAGE'
+          }</small>
           <h2>{title}</h2>
           <p>{subtitle}</p>
         </div>
@@ -308,6 +321,50 @@ const EquipmentRail: React.FC<{
         <span />
         <kbd>2×</kbd> unequip
       </div>
+    </section>
+  );
+};
+
+const SearchedEquipment: React.FC<{
+  name: string;
+  equipment: Record<string, AvidItem>;
+  equipmentSlots: Record<string, { label: string }>;
+  onContext: (event: React.MouseEvent, item: AvidItem, equipmentSlot: string) => void;
+}> = ({ name, equipment, equipmentSlots, onContext }) => {
+  const occupied = EQUIPMENT.filter((slotName) => equipment[slotName]);
+
+  return (
+    <section className="avid-panel avid-search-equipment">
+      <header className="avid-panel-head">
+        <div>
+          <small>SEARCHING</small>
+          <h2>{name}</h2>
+          <p>Equipped items require explicit confiscation.</p>
+        </div>
+      </header>
+
+      {occupied.length ? (
+        <div className="avid-search-equipment-grid">
+          {occupied.map((slotName) => {
+            const item = equipment[slotName];
+
+            return (
+              <button
+                key={slotName}
+                onContextMenu={(event) => onContext(event, item, slotName)}
+                title="Right-click to confiscate"
+              >
+                <small>{equipmentSlots[slotName]?.label || slotName}</small>
+                <img src={itemImage(item)} alt="" />
+                <span>{item.label}</span>
+                <em>RMB</em>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="avid-search-empty">No equipped items visible.</div>
+      )}
     </section>
   );
 };
