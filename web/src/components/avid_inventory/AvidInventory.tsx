@@ -432,7 +432,8 @@ const ContextMenu: React.FC<{
   onSplit: (amount: number) => void;
   onEquip: (slot: string) => void;
   onUnequip: () => void;
-}> = ({ context, onClose, onUse, onGive, onDrop, onQuickMove, onSplit, onEquip, onUnequip }) => {
+  onConfiscate: () => void;
+}> = ({ context, onClose, onUse, onGive, onDrop, onQuickMove, onSplit, onEquip, onUnequip, onConfiscate }) => {
   const maxSplit = context ? Math.max(1, context.item.count - 1) : 1;
   const [splitAmount, setSplitAmount] = useState(1);
 
@@ -471,12 +472,17 @@ const ContextMenu: React.FC<{
 
         {context.kind === 'equipment' ? (
           <button onClick={onUnequip}>Return to pockets</button>
+        ) : context.kind === 'searchedEquipment' ? (
+          <button className="is-confiscate" onClick={onConfiscate}>Confiscate Equipped Item</button>
         ) : (
           <>
             <button onClick={onUse} disabled={context.kind !== 'pockets'}>Use</button>
             <button onClick={onGive} disabled={context.kind !== 'pockets'}>Give</button>
             <button onClick={onQuickMove}>Quick Move</button>
-            {context.item.count > 1 && (
+
+            {context.item.count > 1 &&
+              context.kind !== 'searched' &&
+              context.kind !== 'searchedBackpack' && (
               <div className="avid-split-control">
                 <div>
                   <span>Split Stack</span>
@@ -492,7 +498,10 @@ const ContextMenu: React.FC<{
                 <button onClick={() => onSplit(splitAmount)}>Split {splitAmount}</button>
               </div>
             )}
-            {context.kind !== 'external' && <button className="is-drop" onClick={onDrop}>Drop on ground</button>}
+
+            {(context.kind === 'pockets' || context.kind === 'backpack') && (
+              <button className="is-drop" onClick={onDrop}>Drop on ground</button>
+            )}
 
             {context.kind === 'pockets' && equipment.map((slot) => (
               <button key={slot} onClick={() => onEquip(slot)}>Equip · {slot}</button>
@@ -571,14 +580,14 @@ const AvidInventory: React.FC = () => {
     window.setTimeout(() => void refresh(), 35);
   }, [refresh]);
 
-  const giveSpecificItem = useCallback(async (entry?: AvidItem, kind?: GridName | 'equipment') => {
+  const giveSpecificItem = useCallback(async (entry?: AvidItem, kind?: GridName | 'equipment' | 'searchedEquipment') => {
     if (!entry || kind !== 'pockets') return;
     await fetchNui('giveItem', { slot: entry.slot, count: 0 });
     window.setTimeout(() => void refresh(), 35);
   }, [refresh]);
 
-  const dropSpecificItem = useCallback(async (entry?: AvidItem, kind?: GridName | 'equipment') => {
-    if (!entry || kind === 'equipment' || kind === 'external') return;
+  const dropSpecificItem = useCallback(async (entry?: AvidItem, kind?: GridName | 'equipment' | 'searchedEquipment') => {
+    if (!entry || (kind !== 'pockets' && kind !== 'backpack')) return;
 
     const result = await fetchNui<ActionResponse>('avid:drop', {
       from: kind,
@@ -708,6 +717,16 @@ const AvidInventory: React.FC = () => {
     setSelected(null);
   }, [refresh, show]);
 
+  const confiscateEquipped = useCallback(async (equipmentSlot: string) => {
+    const result = await fetchNui<ActionResponse>('avid:confiscateEquipped', { equipmentSlot });
+
+    if (!result?.success) return show(result?.error || 'Unable to confiscate equipped item');
+
+    if (result.state) setState(result.state); else void refresh();
+    setSelected(null);
+    setContext(null);
+  }, [refresh, show]);
+
   const equipItem = useCallback(async (equipmentSlot: string, entry?: AvidItem, kind?: GridName) => {
     if (!entry || kind !== 'pockets') {
       show('Items must be in your pockets before equipping');
@@ -751,13 +770,13 @@ const AvidInventory: React.FC = () => {
   const openContext = useCallback((
     event: React.MouseEvent,
     entry: AvidItem,
-    kind: GridName | 'equipment',
+    kind: GridName | 'equipment' | 'searchedEquipment',
     equipmentSlot?: string
   ) => {
     event.preventDefault();
     event.stopPropagation();
 
-    if (kind !== 'equipment') setSelected({ kind, slot: entry.slot });
+    if (kind !== 'equipment' && kind !== 'searchedEquipment') setSelected({ kind, slot: entry.slot });
 
     const width = 230;
     const height = 455;
@@ -827,7 +846,7 @@ const AvidInventory: React.FC = () => {
         const targetSlot = Number(targetItem.dataset.itemSlot);
 
         if (
-          (targetKind === 'pockets' || targetKind === 'backpack' || targetKind === 'external') &&
+          (targetKind === 'pockets' || targetKind === 'backpack' || targetKind === 'external' || targetKind === 'searched' || targetKind === 'searchedBackpack') &&
           targetSlot > 0 &&
           !(session.payload.kind === targetKind && session.payload.slot === targetSlot)
         ) {
@@ -850,7 +869,7 @@ const AvidInventory: React.FC = () => {
           const rows = Number(grid.dataset.gridRows);
           const kind = grid.dataset.gridContainer as GridName;
 
-          if (!cols || !rows || (kind !== 'pockets' && kind !== 'backpack' && kind !== 'external')) break;
+          if (!cols || !rows || (kind !== 'pockets' && kind !== 'backpack' && kind !== 'external' && kind !== 'searched' && kind !== 'searchedBackpack')) break;
 
           const cellWidth = rect.width / cols;
           const cellHeight = rect.height / rows;
@@ -899,7 +918,8 @@ const AvidInventory: React.FC = () => {
     rightInventory.type &&
     rightInventory.type !== 'newdrop' &&
     rightInventory.type !== 'drop' &&
-    !state?.external
+    !state?.external &&
+    !state?.searched
   );
 
   const gridProps = {
