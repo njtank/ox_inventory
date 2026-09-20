@@ -103,8 +103,9 @@ local function claimPrisonProperty()
                 or 'Your stored property has been returned.',
         })
     else
-        local message = reason == 'no_prison_property'
-            and 'You do not have any property waiting for you.'
+        local message =
+            reason == 'no_prison_property' and 'You do not have any property waiting for you.'
+            or reason == 'not_at_prison_property_desk' and 'Collect your property from the prison front desk.'
             or 'Your stored property could not be returned.'
 
         lib.notify({
@@ -131,3 +132,6 @@ end)
 exports('openInstitutionLocker', openInstitutionLocker)
 exports('openEvidenceLocker', openEvidenceLocker)
 exports('claimPrisonProperty', claimPrisonProperty)
+exports('hasPrisonProperty', function()
+    return lib.callback.await('ox_inventory:avid:hasPrisonProperty', false)
+end)
