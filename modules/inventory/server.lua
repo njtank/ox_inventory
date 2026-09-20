@@ -2915,6 +2915,7 @@ local function registerStash(name, label, slots, maxWeight, owner, groups, coord
 	}
 end
 
+Inventory.RegisterStash = registerStash
 exports('RegisterStash', registerStash)
 
 ---@param properties TemporaryStashProperties
