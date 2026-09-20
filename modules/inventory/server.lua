@@ -2161,14 +2161,17 @@ function Inventory.Confiscate(source)
 
 	if not inv or not inv.player then return end
 
-	db.saveStash(inv.owner, inv.owner, json.encode(minimal(inv)))
-	table.wipe(inv.items)
-	inv.weight = 0
-	inv.changed = true
+	local saved = db.saveStash(inv.owner, inv.owner, json.encode(minimal(inv)))
+	if saved == nil then return false end
 
-	TriggerClientEvent('ox_inventory:inventoryConfiscated', inv.id)
+	inv:closeInventory()
+	Inventory.Clear(inv)
+	Inventory.Save(inv)
+
+	TriggerClientEvent('ox_inventory:inventoryConfiscated', inv.id, true)
 
 	if server.syncInventory then server.syncInventory(inv) end
+	return true
 end
 exports('ConfiscateInventory', Inventory.Confiscate)
 
