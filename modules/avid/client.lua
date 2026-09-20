@@ -65,3 +65,69 @@ end)
 RegisterNUICallback('avid:move', function(data, cb)
     respond(cb, lib.callback.await('ox_inventory:avid:move', false, data))
 end)
+
+
+local institutionalLockers = {
+    police = 'policelocker',
+    ems = 'emslocker',
+    ambulance = 'emslocker',
+    lawyer = 'lawyerlocker',
+}
+
+local function openInstitutionLocker(locker)
+    local stash = institutionalLockers[locker] or locker
+
+    if type(stash) ~= 'string' or stash == '' then
+        return false
+    end
+
+    return client.openInventory('stash', stash)
+end
+
+local function openEvidenceLocker(caseId)
+    if caseId == nil or caseId == '' then
+        return client.openInventory('policeevidence')
+    end
+
+    return client.openInventory('policeevidence', tostring(caseId))
+end
+
+local function claimPrisonProperty()
+    local success, reason = lib.callback.await('ox_inventory:avid:claimPrisonProperty', false)
+
+    if success then
+        lib.notify({
+            type = 'success',
+            description = reason == 'inventory_empty'
+                and 'No stored property was found.'
+                or 'Your stored property has been returned.',
+        })
+    else
+        local message = reason == 'no_prison_property'
+            and 'You do not have any property waiting for you.'
+            or 'Your stored property could not be returned.'
+
+        lib.notify({
+            type = 'error',
+            description = message,
+        })
+    end
+
+    return success, reason
+end
+
+RegisterNetEvent('ox_inventory:avid:openLocker', function(locker)
+    openInstitutionLocker(locker)
+end)
+
+RegisterNetEvent('ox_inventory:avid:openEvidence', function(caseId)
+    openEvidenceLocker(caseId)
+end)
+
+RegisterNetEvent('ox_inventory:avid:claimPrisonProperty', function()
+    claimPrisonProperty()
+end)
+
+exports('openInstitutionLocker', openInstitutionLocker)
+exports('openEvidenceLocker', openEvidenceLocker)
+exports('claimPrisonProperty', claimPrisonProperty)
