@@ -11,6 +11,26 @@ return {
 
     defaultItemSize = { w = 1, h = 1 },
 
+    externalStorage = {
+        supported = {
+            stash = true,
+            trunk = true,
+            glovebox = true,
+            container = true,
+            dumpster = true,
+            temp = true,
+        },
+        columns = {
+            glovebox = 5,
+            trunk = 8,
+            stash = 8,
+            container = 7,
+            dumpster = 6,
+            temp = 8,
+        },
+        defaultColumns = 8,
+    },
+
     itemSizes = {
         phone = { w = 1, h = 1 },
         burnerphone = { w = 1, h = 1 },
