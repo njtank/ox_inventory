@@ -1,4 +1,6 @@
 local Spatial = require 'modules.avid.spatial'
+local TriggerEventHooks = require 'modules.hooks.server'
+local Items = require 'modules.items.server'
 
 return function(Inventory)
     local function sync(inv, slot)
@@ -105,6 +107,67 @@ return function(Inventory)
         return container
     end
 
+    local function externalInventory(player)
+        local openId = player and player.open
+        if not openId then return end
+
+        local inv = Inventory(openId)
+        if not inv or inv == player or not Spatial.IsExternalStorage(inv) then return end
+
+        return inv
+    end
+
+    local function resolveInventory(player, name)
+        if name == 'pockets' then return player end
+        if name == 'backpack' then return equippedBackpack(player) end
+        if name == 'external' then return externalInventory(player) end
+    end
+
+    local function validateContainerTransfer(player, fromInv, toInv, item)
+        if not item then return false, 'item_missing' end
+
+        if item.metadata and item.metadata.container and toInv.type == 'container' then
+            return false, 'nested_containers_disabled'
+        end
+
+        if toInv.type == 'container' and player.containerSlot then
+            local containerItem = player.items[player.containerSlot]
+            local rules = containerItem and Items.containers[containerItem.name]
+
+            if rules then
+                if rules.whitelist and not rules.whitelist[item.name] then
+                    return false, 'container_item_restricted'
+                end
+
+                if rules.blacklist and rules.blacklist[item.name] then
+                    return false, 'container_item_restricted'
+                end
+            end
+        end
+
+        return true
+    end
+
+    local function transferHook(source, fromInv, toInv, fromItem, toSlot, count, action)
+        local hooks <close> = TriggerEventHooks('swapItems', {
+            source = source,
+            fromInventory = fromInv.id,
+            fromSlot = fromItem,
+            fromType = fromInv.type,
+            toInventory = toInv.id,
+            toSlot = toInv.items[toSlot] or toSlot,
+            toType = toInv.type,
+            count = count,
+            action = action or 'move',
+        })
+
+        if not hooks.success then
+            return false, 'transfer_rejected'
+        end
+
+        return true
+    end
+
     local function groundInventory(player)
         local openId = player and player.open
         if not openId then return end
@@ -160,6 +223,7 @@ return function(Inventory)
             equipment = equipped(inv),
             equipmentSlots = Spatial.GetEquipmentConfig(),
             backpack = serialize(equippedBackpack(inv)),
+            external = serialize(externalInventory(inv)),
             ground = serializeGround(groundInventory(inv)),
         }
     end
