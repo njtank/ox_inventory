@@ -2,6 +2,7 @@ if not lib then return end
 
 local Query = {
     SELECT_STASH = 'SELECT data FROM ox_inventory WHERE owner = ? AND name = ?',
+    DELETE_STASH = 'DELETE FROM ox_inventory WHERE owner = ? AND name = ?',
     UPDATE_STASH = 'UPDATE ox_inventory SET data = ? WHERE owner = ? AND name = ?',
     UPSERT_STASH =
     'INSERT INTO ox_inventory (data, owner, name) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE data = VALUES(data)',
@@ -137,6 +138,10 @@ end
 
 function db.loadStash(owner, name)
     return MySQL.prepare.await(Query.SELECT_STASH, { owner and tostring(owner) or '', name })
+end
+
+function db.deleteStash(owner, name)
+    return MySQL.prepare.await(Query.DELETE_STASH, { owner and tostring(owner) or '', name })
 end
 
 function db.saveGlovebox(id, inventory)
