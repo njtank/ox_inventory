@@ -36,4 +36,13 @@ return {
 		weight = 70000,
 		groups = {['ambulance'] = 0}
 	},
+,
+	{
+		name = 'lawyerlocker',
+		label = 'Personal Legal Locker',
+		owner = true,
+		slots = 56,
+		weight = 60000,
+		groups = {['lawyer'] = 0}
+	}
 }
