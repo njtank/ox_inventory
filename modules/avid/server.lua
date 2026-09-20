@@ -107,6 +107,34 @@ return function(Inventory)
         return container
     end
 
+    local function searchedInventory(player)
+        local openId = player and player.open
+        if not openId or openId == player.id then return end
+
+        local inv = Inventory(openId)
+
+        if inv and inv.player and inv ~= player then
+            return inv
+        end
+    end
+
+    local function searchedBackpack(player)
+        local target = searchedInventory(player)
+        return target and equippedBackpack(target) or nil
+    end
+
+    local function refreshBackpackWeight(owner, container)
+        if not owner or not container then return end
+
+        local bag = equipped(owner).backpack
+        local bagItem = bag and owner.items[bag.slot]
+
+        if bagItem then
+            Inventory.ContainerWeight(bagItem, container.weight, owner)
+            sync(owner, bag.slot)
+        end
+    end
+
     local function externalInventory(player)
         local openId = player and player.open
         if not openId then return end
@@ -121,6 +149,8 @@ return function(Inventory)
         if name == 'pockets' then return player end
         if name == 'backpack' then return equippedBackpack(player) end
         if name == 'external' then return externalInventory(player) end
+        if name == 'searched' then return searchedInventory(player) end
+        if name == 'searchedBackpack' then return searchedBackpack(player) end
     end
 
     local function validateContainerTransfer(player, fromInv, toInv, item)
@@ -143,6 +173,39 @@ return function(Inventory)
                     return false, 'container_item_restricted'
                 end
             end
+        end
+
+        return true
+    end
+
+    local function validateSearchSession(source, player, target)
+        if not player or not target or not target.player then
+            return false, 'search_target_missing'
+        end
+
+        if player.open ~= target.id then
+            return false, 'search_closed'
+        end
+
+        local sourcePed = player.player and player.player.ped
+        local targetPed = target.player and target.player.ped
+
+        if not sourcePed or not targetPed then
+            return false, 'search_target_missing'
+        end
+
+        local sourceCoords = GetEntityCoords(sourcePed)
+        local targetCoords = GetEntityCoords(targetPed)
+
+        if #(sourceCoords - targetCoords) > 3.0 then
+            return false, 'search_target_too_far'
+        end
+
+        local isPolice = server.hasGroup(player, shared.police)
+        local targetState = Player(target.id).state
+
+        if not isPolice and not targetState.canSteal then
+            return false, 'search_not_allowed'
         end
 
         return true
@@ -224,6 +287,18 @@ return function(Inventory)
             equipmentSlots = Spatial.GetEquipmentConfig(),
             backpack = serialize(equippedBackpack(inv)),
             external = serialize(externalInventory(inv)),
+            searched = (function()
+                local target = searchedInventory(inv)
+                if not target then return end
+
+                return {
+                    id = target.id,
+                    name = target.label or (target.player and target.player.name) or 'Searched Person',
+                    pockets = serialize(target),
+                    equipment = equipped(target),
+                    backpack = serialize(equippedBackpack(target)),
+                }
+            end)(),
             ground = serializeGround(groundInventory(inv)),
         }
     end
