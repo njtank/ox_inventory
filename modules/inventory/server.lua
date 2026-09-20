@@ -2175,16 +2175,19 @@ function Inventory.Return(source)
 
 	if not inv or not inv.player then return end
 
-	local items = MySQL.scalar.await('SELECT data FROM ox_inventory WHERE name = ?', { inv.owner })
+	local items = db.loadStash(inv.owner, inv.owner)
 
     if not items then return end
 
-	MySQL.update.await('DELETE FROM ox_inventory WHERE name = ?', { inv.owner })
+    if type(items) == 'string' then
+        items = json.decode(items)
+    end
 
-    items = json.decode(items)
     local inventory, totalWeight = {}, 0
 
     if table.type(items) == 'array' then
+        local ostime = os.time()
+
         for i = 1, #items do
             local data = items[i]
             if type(data) == 'number' then break end
@@ -2192,9 +2195,23 @@ function Inventory.Return(source)
             local item = Items(data.name)
 
             if item then
-                local weight = Inventory.SlotWeight(item, data)
-                totalWeight = totalWeight + weight
-                inventory[data.slot] = {name = data.name, label = item.label, weight = weight, slot = data.slot, count = data.count, description = item.description, metadata = data.metadata, stack = item.stack, close = item.close}
+                local metadata = Items.CheckMetadata(data.metadata or {}, item, data.name, ostime)
+                local slotData = {
+                    name = data.name,
+                    label = item.label,
+                    weight = 0,
+                    slot = data.slot,
+                    count = data.count,
+                    description = item.description,
+                    metadata = metadata,
+                    stack = item.stack,
+                    close = item.close,
+                    avid = data.avid,
+                }
+
+                slotData.weight = Inventory.SlotWeight(item, slotData)
+                totalWeight += slotData.weight
+                inventory[data.slot] = slotData
             end
         end
     end
@@ -2202,8 +2219,16 @@ function Inventory.Return(source)
     inv.changed = true
     inv.weight = totalWeight
     inv.items = inventory
+    inv.weapon = nil
 
-    TriggerClientEvent('ox_inventory:inventoryReturned', source, { inventory, totalWeight })
+    AvidSpatial.Normalize(inv)
+    Inventory.Save(inv)
+    db.deleteStash(inv.owner, inv.owner)
+
+    TriggerClientEvent('ox_inventory:inventoryReturned', source, {
+        inventory,
+        totalWeight = inv.weight,
+    })
 
     if server.syncInventory then server.syncInventory(inv) end
 end
