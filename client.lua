@@ -995,14 +995,16 @@ RegisterNetEvent('ox_inventory:inventoryReturned', function(data)
 	lib.notify({ description = locale('items_returned') })
 	client.closeInventory()
 
+	local inventory = data.inventory or data[1] or {}
+	local weight = data.totalWeight or data[3] or data[2] or 0
 	local num, items = 0, {}
 
-	for _, slotData in pairs(data[1]) do
+	for _, slotData in pairs(inventory) do
 		num += 1
 		items[num] = { item = slotData, inventory = cache.serverId }
 	end
 
-	updateInventory(items, data[3])
+	updateInventory(items, weight)
 end)
 
 RegisterNetEvent('ox_inventory:inventoryConfiscated', function(message)
