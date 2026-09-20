@@ -211,6 +211,34 @@ return function(Inventory)
         return true
     end
 
+    local function validateSearchTransfer(source, player, fromInv, toInv)
+        local target = searchedInventory(player)
+        if not target then return true end
+
+        local targetBag = equippedBackpack(target)
+
+        if fromInv == target or toInv == target or fromInv == targetBag or toInv == targetBag then
+            return validateSearchSession(source, player, target)
+        end
+
+        return true
+    end
+
+    local function refreshTransferBackpacks(player, fromInv, toInv)
+        local ownBag = equippedBackpack(player)
+
+        if ownBag and (fromInv == ownBag or toInv == ownBag) then
+            refreshBackpackWeight(player, ownBag)
+        end
+
+        local target = searchedInventory(player)
+        local targetBag = target and equippedBackpack(target)
+
+        if targetBag and (fromInv == targetBag or toInv == targetBag) then
+            refreshBackpackWeight(target, targetBag)
+        end
+    end
+
     local function transferHook(source, fromInv, toInv, fromItem, toSlot, count, action)
         local hooks <close> = TriggerEventHooks('swapItems', {
             source = source,
