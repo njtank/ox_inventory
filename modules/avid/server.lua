@@ -345,6 +345,9 @@ return function(Inventory)
 
         if not inv then return { success = false, error = 'invalid_inventory' } end
 
+        local searchOk, searchError = validateSearchTransfer(source, player, inv, inv)
+        if not searchOk then return { success = false, error = searchError } end
+
         local ok, err = Spatial.SetGrid(inv, tonumber(data.slot), tonumber(data.x), tonumber(data.y), false)
         if ok then sync(inv, tonumber(data.slot)) end
 
@@ -397,6 +400,9 @@ return function(Inventory)
 
         local inv = Inventory(source)
         if not inv then return { success = false, error = 'invalid_inventory' } end
+
+        local searchOk, searchError = validateSearchTransfer(source, player, inv, inv)
+        if not searchOk then return { success = false, error = searchError } end
 
         local slot = tonumber(data.slot)
         local item = inv.items[slot]
@@ -580,6 +586,9 @@ return function(Inventory)
 
         if not fromInv or not toInv then return { success = false, error = 'invalid_inventory' } end
 
+        local searchOk, searchError = validateSearchTransfer(source, player, fromInv, toInv)
+        if not searchOk then return { success = false, error = searchError } end
+
         local fromSlot = tonumber(data.fromSlot)
         local toSlot = tonumber(data.toSlot)
 
@@ -631,15 +640,7 @@ return function(Inventory)
         sync(fromInv, fromSlot)
         sync(toInv, toSlot)
 
-        if backpack and (fromInv == backpack or toInv == backpack) then
-            local bag = equipped(player).backpack
-            local bagItem = bag and player.items[bag.slot]
-
-            if bagItem then
-                Inventory.ContainerWeight(bagItem, backpack.weight, player)
-                sync(player, bag.slot)
-            end
-        end
+        refreshTransferBackpacks(player, fromInv, toInv)
 
         return { success = true, state = state(source) }
     end)
@@ -701,12 +702,23 @@ return function(Inventory)
 
         local backpack = equippedBackpack(player)
         local external = externalInventory(player)
-        local fromName = data.from == 'external' and 'external'
+        local searched = searchedInventory(player)
+        local fromName = data.from == 'searchedBackpack' and 'searchedBackpack'
+            or data.from == 'searched' and 'searched'
+            or data.from == 'external' and 'external'
             or data.from == 'backpack' and 'backpack'
             or 'pockets'
         local toName
 
-        if external then
+        if searched then
+            if fromName == 'searched' or fromName == 'searchedBackpack' then
+                toName = 'pockets'
+            elseif fromName == 'pockets' then
+                toName = 'searched'
+            else
+                toName = 'pockets'
+            end
+        elseif external then
             if fromName == 'external' then
                 toName = 'pockets'
             elseif fromName == 'pockets' then
@@ -728,6 +740,9 @@ return function(Inventory)
                 error = toName == 'backpack' and 'no_backpack_equipped' or 'invalid_inventory'
             }
         end
+
+        local searchOk, searchError = validateSearchTransfer(source, player, fromInv, toInv)
+        if not searchOk then return { success = false, error = searchError } end
 
         local slot = tonumber(data.slot)
         local item = slot and fromInv.items[slot]
@@ -780,15 +795,7 @@ return function(Inventory)
         sync(fromInv, slot)
         sync(toInv, newSlot)
 
-        if backpack and (fromInv == backpack or toInv == backpack) then
-            local bag = equipped(player).backpack
-            local bagItem = bag and player.items[bag.slot]
-
-            if bagItem then
-                Inventory.ContainerWeight(bagItem, backpack.weight, player)
-                sync(player, bag.slot)
-            end
-        end
+        refreshTransferBackpacks(player, fromInv, toInv)
 
         return { success = true, state = state(source) }
     end)
@@ -806,6 +813,9 @@ return function(Inventory)
         if not fromInv or not toInv or fromInv == toInv then
             return { success = false, error = 'invalid_inventory' }
         end
+
+        local searchOk, searchError = validateSearchTransfer(source, player, fromInv, toInv)
+        if not searchOk then return { success = false, error = searchError } end
 
         local slot = tonumber(data.slot)
         local item = slot and fromInv.items[slot]
@@ -859,15 +869,7 @@ return function(Inventory)
         sync(fromInv, slot)
         sync(toInv, newSlot)
 
-        if backpack and (fromInv == backpack or toInv == backpack) then
-            local bag = equipped(player).backpack
-            local bagItem = bag and player.items[bag.slot]
-
-            if bagItem then
-                Inventory.ContainerWeight(bagItem, backpack.weight, player)
-                sync(player, bag.slot)
-            end
-        end
+        refreshTransferBackpacks(player, fromInv, toInv)
 
         return { success = true, state = state(source) }
     end)
