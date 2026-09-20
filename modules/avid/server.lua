@@ -472,8 +472,8 @@ return function(Inventory)
         if not player then return { success = false, error = 'invalid_inventory' } end
 
         local backpack = equippedBackpack(player)
-        local fromInv = data.from == 'backpack' and backpack or data.from == 'pockets' and player
-        local toInv = data.to == 'backpack' and backpack or data.to == 'pockets' and player
+        local fromInv = resolveInventory(player, data.from)
+        local toInv = resolveInventory(player, data.to)
 
         if not fromInv or not toInv then return { success = false, error = 'invalid_inventory' } end
 
@@ -497,6 +497,12 @@ return function(Inventory)
         if toInv.maxWeight and fromInv ~= toInv and toInv.weight + (fromItem.weight or 0) > toInv.maxWeight then
             return { success = false, error = 'inventory_overweight' }
         end
+
+        local allowed, restriction = validateContainerTransfer(player, fromInv, toInv, fromItem)
+        if not allowed then return { success = false, error = restriction } end
+
+        local hooked, hookError = transferHook(source, fromInv, toInv, fromItem, toSlot, fromItem.count, 'stack')
+        if not hooked then return { success = false, error = hookError } end
 
         local count = fromItem.count
         local metadata = table.clone(fromItem.metadata or {})
@@ -542,7 +548,7 @@ return function(Inventory)
         if not player then return { success = false, error = 'invalid_inventory' } end
 
         local backpack = equippedBackpack(player)
-        local inv = data.from == 'backpack' and backpack or player
+        local inv = resolveInventory(player, data.from)
 
         if not inv then return { success = false, error = 'invalid_inventory' } end
 
