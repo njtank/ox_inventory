@@ -970,6 +970,35 @@ const AvidInventory: React.FC = () => {
     />
   ) : null;
 
+  const searchedEquipmentPanel = state?.searched ? (
+    <SearchedEquipment
+      name={state.searched.name}
+      equipment={state.searched.equipment}
+      equipmentSlots={state.equipmentSlots}
+      onContext={(event, entry, equipmentSlot) => openContext(event, entry, 'searchedEquipment', equipmentSlot)}
+    />
+  ) : null;
+
+  const searchedPocketsPanel = state?.searched ? (
+    <Grid
+      title="Pockets"
+      subtitle={state.searched.name}
+      inventory={state.searched.pockets}
+      kind="searched"
+      {...gridProps}
+    />
+  ) : null;
+
+  const searchedBackpackPanel = state?.searched?.backpack ? (
+    <Grid
+      title={state.searched.backpack.label || 'Backpack'}
+      subtitle="Equipped bag contents"
+      inventory={state.searched.backpack}
+      kind="searchedBackpack"
+      {...gridProps}
+    />
+  ) : null;
+
   const groundPanel = state?.ground ? (
     <GroundPanel
       ground={state.ground}
@@ -1000,6 +1029,24 @@ const AvidInventory: React.FC = () => {
 
         {!state ? (
           <div className="avid-loading">Loading Avid inventory…</div>
+        ) : state.searched ? (
+          <div className="avid-layout avid-player-search">
+            {equipmentPanel}
+
+            <Grid
+              title="Pockets"
+              subtitle="What you are carrying right now."
+              inventory={state.pockets}
+              kind="pockets"
+              {...gridProps}
+            />
+
+            <div className="avid-search-column">
+              {searchedEquipmentPanel}
+              {searchedPocketsPanel}
+              {searchedBackpackPanel}
+            </div>
+          </div>
         ) : state.external ? (
           <div className="avid-layout avid-spatial-external">
             {equipmentPanel}
@@ -1077,8 +1124,8 @@ const AvidInventory: React.FC = () => {
           context={context}
           onClose={() => setContext(null)}
           onUse={() => {
-            if (context) {
-              void useItem(context.item, context.kind === 'equipment' ? undefined : context.kind);
+            if (context && context.kind === 'pockets') {
+              void useItem(context.item, context.kind);
             }
             setContext(null);
           }}
@@ -1090,22 +1137,27 @@ const AvidInventory: React.FC = () => {
             if (context) void dropSpecificItem(context.item, context.kind);
           }}
           onQuickMove={() => {
-            if (context && context.kind !== 'equipment') {
+            if (context && context.kind !== 'equipment' && context.kind !== 'searchedEquipment') {
               void quickMove(context.item, context.kind);
             }
           }}
           onSplit={(amount) => {
-            if (context && context.kind !== 'equipment') {
+            if (context && context.kind !== 'equipment' && context.kind !== 'searchedEquipment') {
               void splitStack(context.item, context.kind, amount);
             }
           }}
           onEquip={(slot) => {
-            if (context && context.kind !== 'equipment') {
+            if (context && context.kind === 'pockets') {
               void equipItem(slot, context.item, context.kind);
             }
           }}
           onUnequip={() => {
             if (context?.equipmentSlot) void unequip(context.equipmentSlot);
+          }}
+          onConfiscate={() => {
+            if (context?.kind === 'searchedEquipment' && context.equipmentSlot) {
+              void confiscateEquipped(context.equipmentSlot);
+            }
           }}
         />
 
