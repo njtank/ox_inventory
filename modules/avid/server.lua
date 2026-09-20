@@ -202,7 +202,13 @@ return function(Inventory)
         end
 
         local isPolice = server.hasGroup(player, shared.police)
-        local targetState = Player(target.id).state
+        local targetPlayer = Player(target.id)
+
+        if not targetPlayer then
+            return false, 'search_target_missing'
+        end
+
+        local targetState = targetPlayer.state
 
         if not isPolice and not targetState.canSteal then
             return false, 'search_not_allowed'
