@@ -36,7 +36,7 @@ return {
 		weight = 70000,
 		groups = {['ambulance'] = 0}
 	},
-,
+
 	{
 		name = 'lawyerlocker',
 		label = 'Personal Legal Locker',
