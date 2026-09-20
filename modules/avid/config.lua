@@ -14,6 +14,7 @@ return {
     externalStorage = {
         supported = {
             stash = true,
+            policeevidence = true,
             trunk = true,
             glovebox = true,
             container = true,
@@ -24,6 +25,7 @@ return {
             glovebox = 5,
             trunk = 8,
             stash = 8,
+            policeevidence = 8,
             container = 7,
             dumpster = 6,
             temp = 8,
