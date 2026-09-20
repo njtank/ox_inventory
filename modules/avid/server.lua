@@ -238,13 +238,7 @@ return function(Inventory)
         local player = Inventory(source)
         if not player then return { success = false, error = 'invalid_inventory' } end
 
-        local inv = player
-
-        if data.inventory == 'backpack' then
-            inv = equippedBackpack(player)
-        elseif data.inventory ~= 'pockets' then
-            return { success = false, error = 'invalid_inventory' }
-        end
+        local inv = resolveInventory(player, data.inventory)
 
         if not inv then return { success = false, error = 'invalid_inventory' } end
 
