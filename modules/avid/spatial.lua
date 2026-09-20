@@ -12,6 +12,13 @@ local function cell(x, y)
     return ('%s:%s'):format(x, y)
 end
 
+function Spatial.IsExternalStorage(inv)
+    return inv
+        and Config.externalStorage
+        and Config.externalStorage.supported
+        and Config.externalStorage.supported[inv.type] == true
+end
+
 function Spatial.GetLayout(inv)
     if not inv then return end
 
@@ -21,7 +28,16 @@ function Spatial.GetLayout(inv)
 
     if inv.type == 'container' then
         local layout = Config.containerLayouts[inv.slots]
-        return layout and table.clone(layout) or nil
+        if layout then return table.clone(layout) end
+    end
+
+    if Spatial.IsExternalStorage(inv) then
+        local slots = math.max(1, math.floor(tonumber(inv.slots) or 1))
+        local preferred = Config.externalStorage.columns[inv.type] or Config.externalStorage.defaultColumns or 8
+        local cols = math.max(1, math.min(preferred, slots))
+        local rows = math.max(1, math.ceil(slots / cols))
+
+        return { cols = cols, rows = rows }
     end
 
     return inv.avidLayout and table.clone(inv.avidLayout) or nil
