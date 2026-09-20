@@ -3,6 +3,7 @@ local Items = require 'modules.items.server'
 local Spatial = require 'modules.avid.spatial'
 
 local PRISON_STASH = 'avid_prison_property'
+local prisonDesks = {}
 
 local function decodeSnapshot(raw)
     if not raw then return end
@@ -28,6 +29,18 @@ local function snapshotHasItems(snapshot)
     end
 
     return false
+end
+
+local function normalizeCoords(coords)
+    if type(coords) ~= 'table' and type(coords) ~= 'vector3' then return end
+
+    local x = coords.x or coords[1]
+    local y = coords.y or coords[2]
+    local z = coords.z or coords[3]
+
+    if not x or not y or not z then return end
+
+    return vec3(x + 0.0, y + 0.0, z + 0.0)
 end
 
 return function(Inventory)
@@ -102,6 +115,7 @@ return function(Inventory)
             return false, 'prison_property_save_failed'
         end
 
+        inv:closeInventory()
         Inventory.Clear(inv)
         Inventory.Save(inv)
 
@@ -159,7 +173,28 @@ return function(Inventory)
         return true, 'prison_property_returned'
     end
 
+    local function nearPrisonDesk(playerId)
+        local inv = Inventory(playerId)
+        local ped = inv and inv.player and inv.player.ped
+
+        if not ped or ped == 0 then return false end
+
+        local playerCoords = GetEntityCoords(ped)
+
+        for _, desk in pairs(prisonDesks) do
+            if #(playerCoords - desk.coords) <= desk.distance then
+                return true
+            end
+        end
+
+        return false
+    end
+
     lib.callback.register('ox_inventory:avid:claimPrisonProperty', function(source)
+        if not nearPrisonDesk(source) then
+            return false, 'not_at_prison_property_desk'
+        end
+
         return returnPrisonProperty(source)
     end)
 
@@ -170,6 +205,18 @@ return function(Inventory)
     exports('StorePrisonProperty', storePrisonProperty)
     exports('ReturnPrisonProperty', returnPrisonProperty)
     exports('HasPrisonProperty', hasPrisonProperty)
+
+    exports('RegisterPrisonPropertyDesk', function(name, coords, distance)
+        local normalized = normalizeCoords(coords)
+        if not normalized then return false end
+
+        prisonDesks[tostring(name or #prisonDesks + 1)] = {
+            coords = normalized,
+            distance = math.max(0.5, tonumber(distance) or 2.0),
+        }
+
+        return true
+    end)
 
     -- Allows job resources to register additional personal lockers without editing
     -- ox_inventory internals. owner=true guarantees one persistent locker per character.
