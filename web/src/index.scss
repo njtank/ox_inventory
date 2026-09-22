@@ -562,3 +562,194 @@ body.inv-dragging {
   transform: translateY(200px);
   transition: all 200ms;
 }
+
+
+/* Avid RP item add / remove notifications */
+.item-notification-container {
+  position: fixed !important;
+  right: 1.5vw !important;
+  bottom: 3.2vh !important;
+  left: auto !important;
+  width: 300px !important;
+  margin: 0 !important;
+  transform: none !important;
+  display: flex !important;
+  flex-direction: column-reverse !important;
+  align-items: flex-end !important;
+  gap: 7px !important;
+  overflow: visible !important;
+  pointer-events: none;
+  z-index: 500;
+}
+
+.avid-item-notification {
+  position: relative;
+  width: 286px;
+  min-height: 66px;
+  display: grid;
+  grid-template-columns: 3px 58px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(102, 217, 232, 0.22);
+  border-radius: 6px;
+  background:
+    linear-gradient(90deg, rgba(102, 217, 232, 0.025), transparent 42%),
+    linear-gradient(180deg, rgba(6, 17, 22, 0.84), rgba(3, 10, 14, 0.88));
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.18),
+    inset 0 0 24px rgba(102, 217, 232, 0.018);
+  animation: avid-item-toast-in 180ms ease-out both;
+  backdrop-filter: blur(2px);
+}
+
+.avid-item-notification-mark {
+  width: 3px;
+  height: 100%;
+  background: #66d9e8;
+  box-shadow: 0 0 12px rgba(102, 217, 232, 0.32);
+}
+
+.avid-item-notification.is-removed .avid-item-notification-mark {
+  background: #dba06f;
+  box-shadow: 0 0 12px rgba(219, 160, 111, 0.28);
+}
+
+.avid-item-notification.is-neutral .avid-item-notification-mark {
+  background: #86a4aa;
+  box-shadow: none;
+}
+
+.avid-item-notification-image {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(102, 217, 232, 0.10);
+  border-radius: 4px;
+  background: rgba(102, 217, 232, 0.018);
+}
+
+.avid-item-notification-image img {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+.avid-item-notification-image span {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  min-width: 19px;
+  padding: 1px 5px;
+  border: 1px solid rgba(102, 217, 232, 0.24);
+  border-radius: 999px;
+  background: rgba(3, 12, 16, 0.80);
+  color: #cfffff;
+  font-size: 9px;
+  line-height: 14px;
+  text-align: center;
+}
+
+.avid-item-notification-copy {
+  min-width: 0;
+  padding-right: 12px;
+}
+
+.avid-item-notification-copy small {
+  display: block;
+  margin-bottom: 3px;
+  color: #66d9e8;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.avid-item-notification.is-removed .avid-item-notification-copy small {
+  color: #dba06f;
+}
+
+.avid-item-notification-copy strong {
+  display: block;
+  overflow: hidden;
+  color: #e8f4f5;
+  font-family: Garamond, Georgia, serif;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@keyframes avid-item-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 1450px) {
+  .item-notification-container {
+    right: 1.2vw !important;
+    bottom: 2.6vh !important;
+    width: 272px !important;
+  }
+
+  .avid-item-notification {
+    width: 260px;
+    min-height: 60px;
+    grid-template-columns: 3px 52px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .avid-item-notification-image {
+    width: 48px;
+    height: 48px;
+  }
+
+  .avid-item-notification-image img {
+    width: 41px;
+    height: 41px;
+  }
+
+  .avid-item-notification-copy strong {
+    font-size: 15px;
+  }
+}
+
+
+/* Final Avid notification treatment: no card/background, just item + signal + copy. */
+.avid-item-notification{
+  overflow:visible!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+}
+.avid-item-notification-image{
+  border:0!important;
+  background:transparent!important;
+}
+.avid-item-notification-image span{
+  border-color:rgba(102,217,232,.32)!important;
+  background:transparent!important;
+  text-shadow:0 1px 5px rgba(0,0,0,.85);
+}
+.avid-item-notification-copy small,
+.avid-item-notification-copy strong{
+  text-shadow:
+    0 1px 2px rgba(0,0,0,.95),
+    0 2px 8px rgba(0,0,0,.72);
+}
+.avid-item-notification-mark{
+  border-radius:999px;
+}

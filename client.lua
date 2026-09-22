@@ -2,6 +2,7 @@ if not lib then return end
 
 require 'modules.bridge.client'
 require 'modules.interface.client'
+require 'modules.avid.client'
 
 local Utils = require 'modules.utils.client'
 local Weapon = require 'modules.weapon.client'
@@ -280,10 +281,7 @@ function client.openInventory(inv, data)
     SetNuiFocus(true, true)
     SetNuiFocusKeepInput(true)
     closeTrunk()
-
-    if client.screenblur then Utils.blurIn() end
-
-    currentInventory = right or defaultInventory
+currentInventory = right or defaultInventory
     left.items = PlayerData.inventory
     left.groups = PlayerData.groups
 
@@ -337,10 +335,7 @@ RegisterNetEvent('ox_inventory:forceOpenInventory', function(left, right)
 	SetNuiFocus(true, true)
 	SetNuiFocusKeepInput(true)
 	closeTrunk()
-
-	if client.screenblur then Utils.blurIn() end
-
-	currentInventory = right or defaultInventory
+currentInventory = right or defaultInventory
 	currentInventory.ignoreSecurityChecks = true
 	left.items = PlayerData.inventory
 	left.groups = PlayerData.groups
@@ -895,7 +890,7 @@ function client.closeInventory()
 		invOpen = nil
 		SetNuiFocus(false, false)
 		SetNuiFocusKeepInput(false)
-		Utils.blurOut()
+Utils.blurOut()
 		closeTrunk()
 		SendNUIMessage({ action = 'closeInventory' })
 		SetInterval(client.interval, 200)
@@ -1000,14 +995,16 @@ RegisterNetEvent('ox_inventory:inventoryReturned', function(data)
 	lib.notify({ description = locale('items_returned') })
 	client.closeInventory()
 
+	local inventory = data.inventory or data[1] or {}
+	local weight = data.totalWeight or data[3] or data[2] or 0
 	local num, items = 0, {}
 
-	for _, slotData in pairs(data[1]) do
+	for _, slotData in pairs(inventory) do
 		num += 1
 		items[num] = { item = slotData, inventory = cache.serverId }
 	end
 
-	updateInventory(items, data[3])
+	updateInventory(items, weight)
 end)
 
 RegisterNetEvent('ox_inventory:inventoryConfiscated', function(message)
@@ -1598,10 +1595,7 @@ RegisterNetEvent('ox_inventory:viewInventory', function(left, right)
 	SetNuiFocus(true, true)
 	SetNuiFocusKeepInput(true)
 	closeTrunk()
-
-	if client.screenblur then Utils.blurIn() end
-
-	currentInventory = right or defaultInventory
+currentInventory = right or defaultInventory
 	currentInventory.ignoreSecurityChecks = true
     currentInventory.type = 'inspect'
 	left.items = PlayerData.inventory

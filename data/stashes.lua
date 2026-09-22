@@ -11,7 +11,7 @@ return {
 			label = 'Open personal locker'
 		},
 		name = 'policelocker',
-		label = 'Personal locker',
+		label = 'Personal Police Locker',
 		owner = true,
 		slots = 70,
 		weight = 70000,
@@ -30,10 +30,19 @@ return {
 			label = 'Open personal locker'
 		},
 		name = 'emslocker',
-		label = 'Personal Locker',
+		label = 'Personal EMS Locker',
 		owner = true,
 		slots = 70,
 		weight = 70000,
 		groups = {['ambulance'] = 0}
 	},
+
+	{
+		name = 'lawyerlocker',
+		label = 'Personal Legal Locker',
+		owner = true,
+		slots = 56,
+		weight = 60000,
+		groups = {['lawyer'] = 0}
+	}
 }

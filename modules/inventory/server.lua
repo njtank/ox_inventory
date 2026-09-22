@@ -182,7 +182,9 @@ local function loadInventoryData(data, player, ignoreSecurityChecks)
             inventory = Inventory.Create(data.id, plate, data.type, storage[1], 0, storage[2], false, nil, nil, dbId)
 		end
 	elseif data.type == 'policeevidence' then
-		inventory = Inventory.Create(data.id, locale('police_evidence'), data.type, 100, 0, 100000, false)
+        local caseId = tostring(data.id):gsub('^evidence%-', '')
+        local label = caseId ~= '' and ('Evidence · %s'):format(caseId) or locale('police_evidence')
+		inventory = Inventory.Create(data.id, label, data.type, 100, 0, 100000, false)
 	else
 		local stash = RegisteredStashes[data.id]
 
@@ -390,7 +392,8 @@ local function minimal(inv)
 				name = v.name,
 				count = v.count,
 				slot = k,
-				metadata = next(v.metadata) and v.metadata or nil
+				metadata = next(v.metadata) and v.metadata or nil,
+				avid = v.avid
 			}
 		end
 	end
@@ -398,6 +401,7 @@ local function minimal(inv)
 end
 
 local Items = require 'modules.items.server'
+local AvidSpatial = require 'modules.avid.spatial'
 
 ---@param inv inventory
 ---@param item table | string
@@ -421,6 +425,7 @@ function Inventory.SetSlot(inv, item, count, metadata, slot)
     end
 
 	local currentSlot = inv.items[slot]
+	local avidState = currentSlot and currentSlot.avid
 	local newCount = currentSlot and currentSlot.count + count or count
 	local newWeight = currentSlot and inv.weight - currentSlot.weight or inv.weight
 
@@ -428,7 +433,7 @@ function Inventory.SetSlot(inv, item, count, metadata, slot)
 		TriggerClientEvent('ox_inventory:itemNotify', inv.id, { currentSlot, 'ui_removed', currentSlot.count })
 		currentSlot = nil
 	else
-		currentSlot = {name = item.name, label = item.label, weight = item.weight, slot = slot, count = newCount, description = item.description, metadata = metadata, stack = item.stack, close = item.close}
+		currentSlot = {name = item.name, label = item.label, weight = item.weight, slot = slot, count = newCount, description = item.description, metadata = metadata, stack = item.stack, close = item.close, avid = avidState}
 		local slotWeight = Inventory.SlotWeight(item, currentSlot)
 		currentSlot.weight = slotWeight
 		newWeight += slotWeight
@@ -649,6 +654,7 @@ function Inventory.Create(id, label, invType, slots, weight, maxWeight, owner, i
 	end
 
 	Inventories[self.id] = setmetatable(self, OxInventory)
+	AvidSpatial.Normalize(Inventories[self.id])
 	return Inventories[self.id]
 end
 
@@ -736,7 +742,8 @@ function Inventory.Save(inv)
                 name = v.name,
                 count = v.count,
                 slot = k,
-                metadata = next(v.metadata) and v.metadata or nil
+                metadata = next(v.metadata) and v.metadata or nil,
+                avid = v.avid
             }
         end
     end
@@ -884,7 +891,7 @@ function Inventory.Load(id, invType, owner)
 				v.metadata = Items.CheckMetadata(v.metadata or {}, item, v.name, ostime)
 				local slotWeight = Inventory.SlotWeight(item, v)
 				weight += slotWeight
-				returnData[v.slot] = {name = item.name, label = item.label, weight = slotWeight, slot = v.slot, count = v.count, description = item.description, metadata = v.metadata, stack = item.stack, close = item.close}
+				returnData[v.slot] = {name = item.name, label = item.label, weight = slotWeight, slot = v.slot, count = v.count, description = item.description, metadata = v.metadata, stack = item.stack, close = item.close, avid = v.avid}
 			end
 		end
 	end
@@ -1201,12 +1208,37 @@ function Inventory.AddItem(inv, item, count, metadata, slot, cb)
 
 	if not toSlot then return false, 'inventory_full' end
 
+	local addedWeight = 0
+
+	if type(toSlot) == 'number' then
+		addedWeight = Inventory.SlotWeight(item, {
+			count = slotCount,
+			metadata = slotMetadata,
+		})
+	else
+		for i = 1, #toSlot do
+			local data = toSlot[i]
+			addedWeight += Inventory.SlotWeight(item, {
+				count = data.count,
+				metadata = data.metadata,
+			})
+		end
+	end
+
+	if inv.maxWeight and addedWeight > 0 and inv.weight + addedWeight > inv.maxWeight then
+		return false, 'inventory_overweight'
+	end
+
+	local spatialOk, spatialPlan = AvidSpatial.PlanTargets(inv, item.name, toSlot)
+	if not spatialOk then return false, 'inventory_full' end
+
 	inv.changed = true
 
 	local toSlotType = type(toSlot)
 
 	if toSlotType == 'number' then
 		Inventory.SetSlot(inv, item, slotCount, slotMetadata, toSlot)
+		AvidSpatial.ApplyTarget(inv, toSlot, spatialPlan)
 
 		if inv.player and server.syncInventory then
 			server.syncInventory(inv)
@@ -1232,6 +1264,7 @@ function Inventory.AddItem(inv, item, count, metadata, slot, cb)
 			local data = toSlot[i]
 			added += data.count
 			Inventory.SetSlot(inv, item, data.count, data.metadata, data.slot)
+			AvidSpatial.ApplyTarget(inv, data.slot, spatialPlan)
 			toSlot[i] = { item = inv.items[data.slot], inventory = inv.id }
 		end
 
@@ -1485,11 +1518,17 @@ function Inventory.CanCarryItem(inv, item, count, metadata)
 			if next(itemSlots) or emptySlots > 0 then
 				if not count then count = 1 end
 				if not item.stack and emptySlots < count then return false end
-				if weight == 0 then return true end
 
 				local newWeight = inv.weight + (weight * count)
 
-				if newWeight > inv.maxWeight then
+				if weight ~= 0 and newWeight > inv.maxWeight then
+					return false
+				end
+
+				local existingStack = item.stack and next(itemSlots) ~= nil
+				local recordsNeeded = item.stack and (existingStack and 0 or 1) or count
+
+				if not AvidSpatial.CanFitRecords(inv, item.name, recordsNeeded) then
 					return false
 				end
 
@@ -1637,6 +1676,7 @@ local function dropItem(source, playerInventory, fromData, data)
 	local toData = table.clone(fromData)
 	toData.slot = data.toSlot
 	toData.count = data.count
+	toData.avid = nil
 	toData.weight = Inventory.SlotWeight(Items(toData.name), toData)
 
     if toData.weight > shared.dropweight then return end
@@ -1702,6 +1742,29 @@ local function dropItem(source, playerInventory, fromData, data)
 		}
 	}
 end
+
+function Inventory.DropFromInventory(source, inv, slot, count, coords, instance)
+    inv = Inventory(inv)
+
+    if not inv or not coords then return false, 'invalid_inventory' end
+
+    slot = tonumber(slot)
+    local item = slot and inv.items[slot]
+    if not item then return false, 'item_missing' end
+
+    count = math.max(1, math.min(math.floor(tonumber(count) or item.count), item.count))
+
+    return dropItem(source, inv, item, {
+        fromSlot = slot,
+        toSlot = 1,
+        fromType = inv.type,
+        toType = 'newdrop',
+        count = count,
+        coords = coords,
+        instance = instance,
+    })
+end
+exports('DropFromInventory', Inventory.DropFromInventory)
 
 local GetLocks = require 'modules.locks'
 
@@ -1785,6 +1848,25 @@ lib.callback.register('ox_inventory:swapItems', function(source, data)
 
         if data.count > fromData.count then
             data.count = fromData.count
+        end
+
+        if not sameInventory and data.toType ~= 'newdrop' then
+            local stacking = toData
+                and toData.name == fromData.name
+                and toData.stack
+                and table.matches(toData.metadata, fromData.metadata)
+
+            if not toData then
+                if not AvidSpatial.CanFitRecords(toInventory, fromData.name, 1) then
+                    return false, 'cannot_carry'
+                end
+            elseif not stacking then
+                if not AvidSpatial.CanReplace(toInventory, fromData.name, data.toSlot)
+                    or not AvidSpatial.CanReplace(fromInventory, toData.name, data.fromSlot)
+                then
+                    return false, 'cannot_carry'
+                end
+            end
         end
 
         if data.toType == 'newdrop' then
@@ -1990,8 +2072,20 @@ lib.callback.register('ox_inventory:swapItems', function(source, data)
 				end
 			end
 
+			if not sameInventory then
+				if hookPayload.action == 'swap' then
+					if fromData then fromData.avid = nil end
+					if toData then toData.avid = nil end
+				elseif hookPayload.action == 'move' then
+					if toData then toData.avid = nil end
+				end
+			end
+
 			fromInventory.items[data.fromSlot] = fromData
 			toInventory.items[data.toSlot] = toData
+
+			AvidSpatial.Normalize(fromInventory)
+			if not sameInventory then AvidSpatial.Normalize(toInventory) end
 
 			if fromInventory.changed ~= nil then fromInventory.changed = true end
 			if toInventory.changed ~= nil then toInventory.changed = true end
@@ -2067,14 +2161,17 @@ function Inventory.Confiscate(source)
 
 	if not inv or not inv.player then return end
 
-	db.saveStash(inv.owner, inv.owner, json.encode(minimal(inv)))
-	table.wipe(inv.items)
-	inv.weight = 0
-	inv.changed = true
+	local saved = db.saveStash(inv.owner, inv.owner, json.encode(minimal(inv)))
+	if saved == nil then return false end
 
-	TriggerClientEvent('ox_inventory:inventoryConfiscated', inv.id)
+	inv:closeInventory()
+	Inventory.Clear(inv)
+	Inventory.Save(inv)
+
+	TriggerClientEvent('ox_inventory:inventoryConfiscated', inv.id, true)
 
 	if server.syncInventory then server.syncInventory(inv) end
+	return true
 end
 exports('ConfiscateInventory', Inventory.Confiscate)
 
@@ -2083,16 +2180,19 @@ function Inventory.Return(source)
 
 	if not inv or not inv.player then return end
 
-	local items = MySQL.scalar.await('SELECT data FROM ox_inventory WHERE name = ?', { inv.owner })
+	local items = db.loadStash(inv.owner, inv.owner)
 
     if not items then return end
 
-	MySQL.update.await('DELETE FROM ox_inventory WHERE name = ?', { inv.owner })
+    if type(items) == 'string' then
+        items = json.decode(items)
+    end
 
-    items = json.decode(items)
     local inventory, totalWeight = {}, 0
 
     if table.type(items) == 'array' then
+        local ostime = os.time()
+
         for i = 1, #items do
             local data = items[i]
             if type(data) == 'number' then break end
@@ -2100,9 +2200,23 @@ function Inventory.Return(source)
             local item = Items(data.name)
 
             if item then
-                local weight = Inventory.SlotWeight(item, data)
-                totalWeight = totalWeight + weight
-                inventory[data.slot] = {name = data.name, label = item.label, weight = weight, slot = data.slot, count = data.count, description = item.description, metadata = data.metadata, stack = item.stack, close = item.close}
+                local metadata = Items.CheckMetadata(data.metadata or {}, item, data.name, ostime)
+                local slotData = {
+                    name = data.name,
+                    label = item.label,
+                    weight = 0,
+                    slot = data.slot,
+                    count = data.count,
+                    description = item.description,
+                    metadata = metadata,
+                    stack = item.stack,
+                    close = item.close,
+                    avid = data.avid,
+                }
+
+                slotData.weight = Inventory.SlotWeight(item, slotData)
+                totalWeight += slotData.weight
+                inventory[data.slot] = slotData
             end
         end
     end
@@ -2110,8 +2224,16 @@ function Inventory.Return(source)
     inv.changed = true
     inv.weight = totalWeight
     inv.items = inventory
+    inv.weapon = nil
 
-    TriggerClientEvent('ox_inventory:inventoryReturned', source, { inventory, totalWeight })
+    AvidSpatial.Normalize(inv)
+    Inventory.Save(inv)
+    db.deleteStash(inv.owner, inv.owner)
+
+    TriggerClientEvent('ox_inventory:inventoryReturned', source, {
+        inventory,
+        totalWeight = inv.weight,
+    })
 
     if server.syncInventory then server.syncInventory(inv) end
 end
@@ -2823,6 +2945,7 @@ local function registerStash(name, label, slots, maxWeight, owner, groups, coord
 	}
 end
 
+Inventory.RegisterStash = registerStash
 exports('RegisterStash', registerStash)
 
 ---@param properties TemporaryStashProperties

@@ -1,0 +1,1330 @@
+$accent:#66d9e8;
+$text:#eaf5f6;
+$muted:#769097;
+$panel:rgba(6,15,20,.95);
+$line:rgba(102,217,232,.25);
+
+.avid-ui,.avid-ui *{box-sizing:border-box}
+.avid-ui{position:absolute;inset:0;z-index:5;padding:2vh 2vw 1.4vh;color:$text;font-family:Inter,"Segoe UI",Arial,sans-serif;background:linear-gradient(180deg,rgba(3,9,13,.75),rgba(3,8,11,.95)),radial-gradient(circle at 48% 24%,rgba(102,217,232,.075),transparent 38%);backdrop-filter:blur(7px);user-select:none}
+.avid-top{height:7vh;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;border-bottom:1px solid rgba(102,217,232,.14)}
+.avid-top>div strong{display:block;font-family:Garamond,Georgia,serif;font-size:2rem;letter-spacing:.18em;font-weight:500}.avid-top>div small{display:block;margin-top:.25rem;color:$accent;font-size:.52rem;letter-spacing:.38em}
+.avid-top nav{height:100%;display:flex;gap:2rem;align-items:center;color:#6f888f;font-size:.68rem;text-transform:uppercase;letter-spacing:.1em}.avid-top nav span:first-child{height:100%;display:grid;place-items:center;color:#dffbff;border-bottom:2px solid $accent}
+.avid-top>button{justify-self:end;width:34px;height:34px;border:1px solid rgba(102,217,232,.2);border-radius:5px;background:transparent;color:#a9c0c5;font-size:1.25rem;cursor:pointer}.avid-top>button:hover{border-color:$accent;color:white}
+.avid-toolbar{height:5.5vh;display:flex;align-items:center;justify-content:space-between}.avid-toolbar label{width:min(34vw,500px);height:36px;display:flex;align-items:center;gap:.55rem;padding:0 .7rem;border:1px solid rgba(102,217,232,.2);border-radius:5px;background:rgba(5,13,17,.8)}.avid-toolbar label span{color:$accent}.avid-toolbar input{width:100%;border:0;outline:0;background:transparent;color:$text;font-size:.74rem}.avid-toolbar>div{color:#607980;font-size:.62rem}.avid-toolbar kbd{padding:.1rem .3rem;border:1px solid rgba(102,217,232,.22);border-radius:3px;color:#cce9ed;background:rgba(102,217,232,.035);font:inherit}
+.avid-layout{height:78.8vh;display:grid;grid-template-columns:minmax(290px,.88fr) minmax(460px,1.25fr) minmax(360px,1fr);gap:.75vw}.avid-external-layout{height:78.8vh;display:grid;grid-template-columns:minmax(290px,.72fr) minmax(760px,2.2fr);gap:.75vw}
+.avid-panel{min-height:0;overflow:hidden;border:1px solid $line;border-radius:8px;background:linear-gradient(180deg,rgba(9,20,26,.95),rgba(5,12,16,.97));box-shadow:inset 0 0 40px rgba(0,0,0,.18),0 10px 30px rgba(0,0,0,.14)}
+.avid-panel-head{min-height:74px;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.85rem 1rem .7rem;border-bottom:1px solid rgba(102,217,232,.11)}.avid-panel-head small{display:block;margin-bottom:.18rem;color:$accent;font-size:.48rem;letter-spacing:.22em}.avid-panel-head h2{margin:0;font-family:Garamond,Georgia,serif;font-size:1.1rem;font-weight:500;letter-spacing:.06em}.avid-panel-head p{max-width:360px;margin:.18rem 0 0;color:$muted;font-size:.63rem;line-height:1.35}
+.avid-weight{width:120px;flex:0 0 auto}.avid-weight>div{display:flex;justify-content:space-between;margin-bottom:.35rem;color:#718990;font-size:.55rem}.avid-weight>div span:first-child{color:#cce9ed}.avid-weight>i{display:block;height:3px;overflow:hidden;border-radius:4px;background:rgba(255,255,255,.06)}.avid-weight b{display:block;height:100%;background:$accent;box-shadow:0 0 8px rgba(102,217,232,.45)}
+.avid-character{display:flex;flex-direction:column}.avid-character-body{position:relative;flex:1;min-height:0;padding:.7rem}.avid-person{position:absolute;top:7%;bottom:7%;left:5%;width:42%;opacity:.65}.avid-person i,.avid-person b,.avid-person span,.avid-person em{position:absolute;display:block;border:1px solid rgba(102,217,232,.3);background:rgba(102,217,232,.018)}.avid-person i{top:0;left:39%;width:22%;height:13%;border-radius:48%}.avid-person b{top:16%;left:28%;width:44%;height:39%;border-radius:20% 20% 10% 10%}.avid-person span{top:55%;left:31%;width:16%;height:43%;border-radius:8px}.avid-person em{top:55%;right:31%;width:16%;height:43%;border-radius:8px}
+.avid-equipment{position:absolute;top:.7rem;right:.7rem;bottom:.7rem;width:49%;display:grid;grid-template-rows:repeat(7,minmax(55px,1fr));gap:.38rem}.avid-equipment button{min-height:0;padding:.45rem .5rem;display:grid;grid-template-columns:42px 1fr;grid-template-rows:auto 1fr;align-items:center;gap:0 .4rem;border:1px solid rgba(102,217,232,.15);border-radius:5px;background:rgba(255,255,255,.01);color:$text;text-align:left;transition:.12s}.avid-equipment button.is-subdued{opacity:.35}.avid-equipment button.has-item{opacity:1;border-color:rgba(102,217,232,.28);cursor:pointer}.avid-equipment button:hover{opacity:1;border-color:$accent}.avid-equipment button small{grid-column:1/-1;color:#708a91;font-size:.48rem;text-transform:uppercase;letter-spacing:.12em}.avid-equipment button img{width:36px;height:32px;object-fit:contain}.avid-equipment button span{overflow:hidden;color:#cddfe2;font-size:.61rem;white-space:nowrap;text-overflow:ellipsis}.avid-character footer{margin:0 .7rem .7rem;padding:.6rem .7rem;border-left:2px solid rgba(102,217,232,.48);background:rgba(102,217,232,.025);color:#6d868d;font-size:.58rem;line-height:1.4}
+.avid-grid-panel{display:flex;flex-direction:column}.avid-grid{position:relative;flex:1;min-height:0;margin:.75rem;display:grid;gap:3px}.avid-cell{min-width:0;min-height:0;border:1px solid rgba(102,217,232,.095);border-radius:3px;background:linear-gradient(145deg,rgba(255,255,255,.014),rgba(255,255,255,.003))}.avid-cell.is-over{border-color:rgba(102,217,232,.6);background:rgba(102,217,232,.085)}
+.avid-item{position:relative;z-index:4;min-width:0;min-height:0;margin:1px;padding:0;overflow:hidden;border:1px solid rgba(102,217,232,.25);border-radius:4px;background:radial-gradient(circle at 50% 42%,rgba(102,217,232,.055),transparent 62%),linear-gradient(145deg,rgba(16,30,37,.98),rgba(8,18,23,.98));color:$text;cursor:grab;transition:.1s}.avid-item:hover,.avid-item.is-selected{border-color:$accent;box-shadow:inset 0 0 24px rgba(102,217,232,.055)}.avid-item.is-muted{opacity:.16;filter:grayscale(.8)}.avid-item.is-dragging{opacity:.25}.avid-item img{position:absolute;inset:11% 10% 19%;width:80%;height:70%;object-fit:contain;pointer-events:none}.avid-item em{position:absolute;top:.27rem;right:.32rem;color:$accent;font-size:.56rem;font-style:normal}.avid-item>span{position:absolute;right:.3rem;bottom:.25rem;left:.3rem;overflow:hidden;color:#dcebed;font-size:.55rem;text-align:left;white-space:nowrap;text-overflow:ellipsis}
+.avid-warning{margin:0 .75rem .75rem;padding:.5rem .65rem;border:1px solid rgba(255,170,90,.3);border-radius:4px;background:rgba(255,140,50,.035);color:#ffc18d;font-size:.6rem}
+.avid-right{min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:.7vh}.avid-no-bag{display:grid;place-items:center;align-content:center;padding:2rem;text-align:center}.avid-no-bag>div{color:$accent;font-size:3rem;opacity:.45}.avid-no-bag h2{margin:.6rem 0 .25rem;font-family:Garamond,Georgia,serif;font-weight:500}.avid-no-bag p{margin:0;color:$muted;font-size:.65rem}
+.avid-details{min-height:205px}.avid-detail-content{display:grid;grid-template-columns:76px 1fr;gap:.8rem;padding:.8rem .9rem}.avid-detail-content>img{width:76px;height:76px;object-fit:contain;border:1px solid rgba(102,217,232,.16);border-radius:5px}.avid-detail-content strong{display:block;font-family:Garamond,Georgia,serif;font-size:1rem;font-weight:500}.avid-detail-content small{display:block;margin-top:.12rem;color:#536c73;font-size:.5rem;text-transform:uppercase;letter-spacing:.07em}.avid-detail-content p{margin:.35rem 0 0;color:#8099a0;font-size:.6rem;line-height:1.4}.avid-actions{grid-column:1/-1;display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:.4rem;margin-top:.2rem}.avid-actions button{height:34px;border:1px solid rgba(102,217,232,.2);border-radius:4px;background:rgba(102,217,232,.025);color:#c9e1e4;font-size:.6rem;cursor:pointer}.avid-actions button:hover:not(:disabled){border-color:$accent;background:rgba(102,217,232,.07)}.avid-actions button:disabled{opacity:.25;cursor:default}.avid-empty-details{min-height:110px;display:grid;place-items:center;padding:1rem;color:#617980;font-size:.6rem;text-align:center}
+.avid-stock-transfer{display:flex;flex-direction:column}.avid-stock-inner{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:18px;padding:1rem}.avid-stock-inner .inventory-grid-container{height:min(58vh,560px)}.avid-stock-inner .inventory-slot{border-color:rgba(102,217,232,.16);background-color:rgba(8,18,23,.92)}.avid-stock-inner .inventory-slot-label-box{background:#08151a}.avid-stock-inner .inventory-control-input,.avid-stock-inner .inventory-control-button{border:1px solid rgba(102,217,232,.18);background:rgba(8,18,23,.92)}
+.avid-loading{height:78.8vh;display:grid;place-items:center;color:#789198;font-size:.7rem}.avid-footer{height:4.3vh;display:flex;align-items:end;justify-content:space-between;color:#536c73;font-size:.5rem;letter-spacing:.17em}.avid-toast{position:fixed;left:50%;bottom:7vh;z-index:100;transform:translateX(-50%);padding:.58rem .8rem;border:1px solid rgba(102,217,232,.25);border-radius:5px;background:rgba(7,17,22,.97);color:#cae2e5;font-size:.62rem;text-transform:capitalize}
+.hotbar-container{z-index:40!important}.hotbar-item-slot{border-color:rgba(102,217,232,.2)!important;background-color:rgba(7,17,22,.94)!important}.hotbar-item-slot .inventory-slot-number{background:$accent!important;color:#061216!important}
+@media(max-width:1450px){.avid-layout{grid-template-columns:minmax(250px,.82fr) minmax(400px,1.17fr) minmax(320px,.96fr)}.avid-equipment{width:52%}.avid-top nav{gap:.8rem}}
+
+
+/* Phase 2 interaction pass */
+.avid-top nav{display:flex;align-items:stretch;height:100%;gap:0}
+.avid-top nav span{border:0!important}
+.avid-top nav button{
+  position:relative;
+  min-width:118px;
+  padding:0 1.1rem;
+  border:0;
+  border-bottom:2px solid transparent;
+  background:transparent;
+  color:#667d84;
+  font-size:.68rem;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  cursor:pointer;
+  transition:.14s ease;
+}
+.avid-top nav button:hover{color:#cde8eb;background:rgba(102,217,232,.025)}
+.avid-top nav button.is-active{
+  color:#e8fbfd;
+  border-bottom-color:$accent;
+  text-shadow:0 0 18px rgba(102,217,232,.24);
+}
+.avid-top nav button.is-active:after{
+  content:"";
+  position:absolute;
+  right:25%;
+  bottom:-1px;
+  left:25%;
+  height:1px;
+  background:$accent;
+  box-shadow:0 0 9px rgba(102,217,232,.7);
+}
+
+.avid-character-view{
+  height:78.8vh;
+  display:grid;
+  grid-template-columns:minmax(420px,.92fr) minmax(540px,1.15fr) minmax(330px,.72fr);
+  gap:.75vw;
+}
+.avid-character-pockets{min-height:0}
+.avid-storage-view{
+  height:78.8vh;
+  display:grid;
+  grid-template-columns:minmax(470px,1.05fr) minmax(470px,1.05fr) minmax(330px,.72fr);
+  gap:.75vw;
+}
+
+.avid-avatar{
+  position:absolute;
+  top:3%;
+  bottom:4%;
+  left:2%;
+  width:47%;
+  min-width:130px;
+  pointer-events:none;
+  filter:drop-shadow(0 15px 26px rgba(0,0,0,.35));
+}
+.avid-avatar:before{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom:3%;
+  width:70%;
+  height:5%;
+  transform:translateX(-50%);
+  border-radius:50%;
+  background:rgba(0,0,0,.35);
+  filter:blur(8px);
+}
+.avid-avatar .avatar-head{
+  position:absolute;
+  top:5%;
+  left:50%;
+  width:31%;
+  height:15%;
+  transform:translateX(-50%);
+  border:1px solid rgba(102,217,232,.22);
+  border-radius:46% 46% 44% 44%;
+  background:linear-gradient(145deg,#8d6f5f,#5e463b);
+  box-shadow:inset -8px -6px 16px rgba(0,0,0,.18);
+}
+.avid-avatar .avatar-head i,
+.avid-avatar .avatar-head b{
+  position:absolute;
+  top:48%;
+  width:4px;
+  height:2px;
+  border-radius:2px;
+  background:rgba(8,14,17,.7);
+}
+.avid-avatar .avatar-head i{left:30%}
+.avid-avatar .avatar-head b{right:30%}
+.avid-avatar .avatar-hair{
+  position:absolute;
+  z-index:3;
+  top:4%;
+  left:50%;
+  width:32%;
+  height:8%;
+  transform:translateX(-50%);
+  border-radius:52% 52% 22% 22%;
+  background:#181b1d;
+}
+.avid-avatar .avatar-neck{
+  position:absolute;
+  z-index:1;
+  top:18%;
+  left:50%;
+  width:11%;
+  height:7%;
+  transform:translateX(-50%);
+  border-radius:4px;
+  background:#74584b;
+}
+.avid-avatar .avatar-torso{
+  position:absolute;
+  z-index:2;
+  top:22%;
+  left:50%;
+  width:54%;
+  height:39%;
+  transform:translateX(-50%);
+  clip-path:polygon(19% 0,81% 0,100% 100%,0 100%);
+  border:1px solid rgba(102,217,232,.2);
+  border-radius:10px 10px 18px 18px;
+  background:linear-gradient(160deg,#202a2f,#10181c);
+}
+.avid-avatar .avatar-torso span{
+  position:absolute;
+  top:12%;
+  left:50%;
+  width:1px;
+  height:72%;
+  background:rgba(102,217,232,.13);
+}
+.avid-avatar .avatar-arm{
+  position:absolute;
+  z-index:1;
+  top:25%;
+  width:13%;
+  height:39%;
+  border-radius:12px;
+  background:linear-gradient(180deg,#1d282d,#10171b);
+}
+.avid-avatar .avatar-arm.left{left:13%;transform:rotate(4deg)}
+.avid-avatar .avatar-arm.right{right:13%;transform:rotate(-4deg)}
+.avid-avatar .avatar-leg{
+  position:absolute;
+  top:59%;
+  width:20%;
+  height:34%;
+  border-radius:4px 4px 10px 10px;
+  background:linear-gradient(180deg,#172127,#0e1418);
+}
+.avid-avatar .avatar-leg.left{left:27%}
+.avid-avatar .avatar-leg.right{right:27%}
+.avid-avatar .avatar-shoe{
+  position:absolute;
+  bottom:2%;
+  width:25%;
+  height:7%;
+  border-radius:9px 12px 5px 5px;
+  background:#0a1013;
+  border:1px solid rgba(102,217,232,.12);
+}
+.avid-avatar .avatar-shoe.left{left:21%}
+.avid-avatar .avatar-shoe.right{right:21%}
+.avid-avatar>small{
+  position:absolute;
+  right:0;
+  bottom:0;
+  left:0;
+  overflow:hidden;
+  color:#7c949a;
+  font-size:.5rem;
+  text-align:center;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.avid-equipment button.is-compatible{
+  opacity:1!important;
+  border-color:$accent!important;
+  background:rgba(102,217,232,.075)!important;
+  box-shadow:inset 0 0 20px rgba(102,217,232,.06),0 0 12px rgba(102,217,232,.12);
+}
+.avid-equipment button.is-compatible small,
+.avid-equipment button.is-compatible span{color:#dffcff}
+.avid-item[draggable="true"]{cursor:grab}
+.avid-item[draggable="true"]:active{cursor:grabbing}
+.avid-cell.is-over{
+  border-color:$accent!important;
+  background:rgba(102,217,232,.12)!important;
+  box-shadow:inset 0 0 15px rgba(102,217,232,.08);
+}
+
+.avid-context-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:120;
+  background:transparent;
+}
+.avid-context-menu{
+  position:fixed;
+  z-index:121;
+  width:230px;
+  overflow:hidden;
+  padding:.45rem;
+  border:1px solid rgba(102,217,232,.34);
+  border-radius:7px;
+  background:rgba(5,13,17,.985);
+  box-shadow:0 18px 55px rgba(0,0,0,.48),inset 0 0 30px rgba(102,217,232,.025);
+  backdrop-filter:blur(14px);
+}
+.avid-context-head{
+  display:grid;
+  grid-template-columns:48px 1fr;
+  gap:.65rem;
+  align-items:center;
+  padding:.4rem .35rem .55rem;
+  border-bottom:1px solid rgba(102,217,232,.12);
+}
+.avid-context-head img{
+  width:48px;
+  height:48px;
+  object-fit:contain;
+}
+.avid-context-head strong{
+  display:block;
+  overflow:hidden;
+  font-family:Garamond,Georgia,serif;
+  font-size:.9rem;
+  font-weight:500;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.avid-context-head small{
+  display:block;
+  margin-top:.12rem;
+  overflow:hidden;
+  color:#607980;
+  font-size:.47rem;
+  text-transform:uppercase;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.avid-context-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:.25rem;
+  padding:.5rem .35rem;
+}
+.avid-context-meta span{
+  padding:.18rem .34rem;
+  border:1px solid rgba(102,217,232,.12);
+  border-radius:3px;
+  color:#779198;
+  background:rgba(102,217,232,.018);
+  font-size:.48rem;
+}
+.avid-context-menu>button{
+  width:100%;
+  min-height:33px;
+  margin-top:3px;
+  padding:0 .55rem;
+  border:1px solid transparent;
+  border-radius:4px;
+  background:rgba(255,255,255,.015);
+  color:#c9dfe2;
+  font-size:.58rem;
+  text-align:left;
+  text-transform:capitalize;
+  cursor:pointer;
+}
+.avid-context-menu>button:hover:not(:disabled){
+  border-color:rgba(102,217,232,.32);
+  background:rgba(102,217,232,.065);
+  color:#effdff;
+}
+.avid-context-menu>button:disabled{
+  opacity:.25;
+  cursor:default;
+}
+
+@media(max-width:1450px){
+  .avid-character-view{grid-template-columns:minmax(360px,.9fr) minmax(430px,1.12fr) minmax(300px,.72fr)}
+  .avid-storage-view{grid-template-columns:minmax(400px,1fr) minmax(400px,1fr) minmax(300px,.72fr)}
+}
+
+
+/* Avid immersive workspace pass */
+.avid-ui{
+  background:
+    radial-gradient(circle at 16% 48%,rgba(3,9,13,.03),rgba(3,9,13,.12) 26%,rgba(3,9,13,.27) 72%,rgba(3,9,13,.38)),
+    linear-gradient(180deg,rgba(3,9,13,.14),rgba(3,8,11,.28));
+  backdrop-filter:none;
+}
+.avid-top{
+  grid-template-columns:1fr auto 1fr;
+  background:linear-gradient(90deg,rgba(3,10,14,.22),rgba(3,10,14,.08),rgba(3,10,14,.22));
+}
+.avid-top-title{
+  color:#8aa2a8;
+  font-size:.64rem;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+}
+.avid-panel{
+  background:linear-gradient(180deg,rgba(8,19,25,.72),rgba(4,11,15,.78));
+  box-shadow:inset 0 0 35px rgba(0,0,0,.12),0 10px 28px rgba(0,0,0,.08);
+  backdrop-filter:blur(2px);
+}
+.avid-character{
+  background:linear-gradient(180deg,rgba(8,19,25,.34),rgba(4,11,15,.42));
+  backdrop-filter:none;
+}
+.avid-character .avid-panel-head{
+  background:rgba(3,11,15,.34);
+}
+.avid-character-body{
+  background:
+    radial-gradient(ellipse at 24% 46%,rgba(102,217,232,.025),transparent 36%),
+    linear-gradient(90deg,rgba(2,8,11,.06),rgba(2,8,11,.18) 52%,rgba(2,8,11,.34) 53%);
+}
+.avid-live-character{
+  position:absolute;
+  top:4%;
+  bottom:4%;
+  left:2%;
+  width:47%;
+  pointer-events:none;
+}
+.avid-live-character:before,
+.avid-live-character:after{
+  content:"";
+  position:absolute;
+  width:42px;
+  height:42px;
+  opacity:.42;
+}
+.avid-live-character:before{
+  top:2%;
+  left:4%;
+  border-top:1px solid $accent;
+  border-left:1px solid $accent;
+}
+.avid-live-character:after{
+  right:5%;
+  bottom:7%;
+  border-right:1px solid $accent;
+  border-bottom:1px solid $accent;
+}
+.avid-live-character>span{
+  position:absolute;
+  left:7%;
+  bottom:9%;
+  color:rgba(204,239,243,.7);
+  font-size:.5rem;
+  letter-spacing:.17em;
+}
+.avid-live-character>small{
+  position:absolute;
+  left:7%;
+  bottom:5%;
+  color:rgba(102,128,135,.72);
+  font-size:.45rem;
+}
+.avid-toolbar label{
+  background:rgba(5,13,17,.48);
+  backdrop-filter:blur(3px);
+}
+.avid-grid-panel{
+  background:linear-gradient(180deg,rgba(8,19,25,.72),rgba(4,11,15,.80));
+}
+.avid-cell{
+  background:linear-gradient(145deg,rgba(9,22,28,.55),rgba(5,14,18,.46));
+}
+.avid-grid.is-drag-target .avid-cell{
+  border-color:rgba(102,217,232,.14);
+}
+.avid-item{
+  touch-action:none;
+}
+.avid-item.is-dragging{
+  opacity:.18;
+  pointer-events:none;
+  border-style:dashed;
+}
+.avid-drag-ghost{
+  position:fixed;
+  z-index:250;
+  width:116px;
+  min-height:74px;
+  display:flex;
+  align-items:center;
+  gap:.45rem;
+  padding:.45rem .5rem;
+  border:1px solid rgba(102,217,232,.56);
+  border-radius:5px;
+  background:rgba(5,15,20,.88);
+  box-shadow:0 12px 30px rgba(0,0,0,.28),0 0 18px rgba(102,217,232,.08);
+  color:#e9fafc;
+  pointer-events:none;
+  transform:translateY(-50%);
+}
+.avid-drag-ghost img{
+  width:44px;
+  height:44px;
+  object-fit:contain;
+}
+.avid-drag-ghost span{
+  overflow:hidden;
+  font-size:.56rem;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.avid-actions{
+  grid-template-columns:1.05fr 1fr 1fr 1fr;
+}
+.avid-actions button.is-drop,
+.avid-context-menu>button.is-drop{
+  border-color:rgba(232,163,112,.22);
+  color:#e8bd9d;
+}
+.avid-actions button.is-drop:hover:not(:disabled),
+.avid-context-menu>button.is-drop:hover:not(:disabled){
+  border-color:rgba(232,163,112,.62);
+  background:rgba(232,163,112,.07);
+  color:#ffe5d0;
+}
+.avid-details{
+  background:linear-gradient(180deg,rgba(8,19,25,.68),rgba(4,11,15,.76));
+}
+.avid-no-bag{
+  background:linear-gradient(180deg,rgba(8,19,25,.58),rgba(4,11,15,.64));
+}
+.avid-stock-transfer{
+  background:linear-gradient(180deg,rgba(8,19,25,.74),rgba(4,11,15,.82));
+}
+.avid-stock-inner .inventory-slot,
+.avid-stock-inner .inventory-control-input,
+.avid-stock-inner .inventory-control-button{
+  background-color:rgba(8,18,23,.72);
+}
+.avid-context-menu{
+  background:rgba(5,13,17,.94);
+}
+.avid-footer{
+  text-shadow:0 1px 8px rgba(0,0,0,.7);
+}
+
+/* Retire the old illustrated paper-doll layer. */
+.avid-avatar,
+.avid-person{
+  display:none!important;
+}
+
+
+/* Immersion + ground inventory refinement */
+.avid-grid-panel,
+.avid-no-bag,
+.avid-ground-panel{
+  background:linear-gradient(180deg,rgba(8,19,25,.34),rgba(4,11,15,.42))!important;
+  backdrop-filter:none!important;
+}
+.avid-grid-panel .avid-panel-head,
+.avid-no-bag .avid-panel-head,
+.avid-ground-panel .avid-panel-head{
+  background:rgba(3,11,15,.26);
+}
+.avid-right{
+  background:transparent!important;
+}
+.avid-grid{
+  background:rgba(2,8,11,.05);
+}
+.avid-cell{
+  background:linear-gradient(145deg,rgba(8,21,27,.34),rgba(4,13,17,.24))!important;
+}
+.avid-item{
+  background:
+    radial-gradient(circle at 50% 42%,rgba(102,217,232,.045),transparent 62%),
+    linear-gradient(145deg,rgba(13,28,35,.76),rgba(7,17,22,.76))!important;
+}
+
+.avid-ground-panel{
+  height:214px;
+  min-height:214px;
+  display:flex;
+  flex-direction:column;
+}
+.avid-ground-panel .avid-panel-head{
+  min-height:66px;
+  padding:.65rem .8rem .55rem;
+}
+.avid-ground-scroll{
+  flex:1;
+  min-height:0;
+  overflow-y:auto;
+  padding:.55rem;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(102,217,232,.3) transparent;
+}
+.avid-ground-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  grid-auto-rows:58px;
+  gap:5px;
+}
+.avid-ground-slot{
+  position:relative;
+  min-width:0;
+  min-height:58px;
+  overflow:hidden;
+  border:1px solid rgba(102,217,232,.14);
+  border-radius:4px;
+  background:rgba(5,15,20,.34);
+  color:#a9c4c9;
+  cursor:grab;
+  touch-action:none;
+}
+.avid-ground-slot:hover{
+  border-color:rgba(102,217,232,.44);
+  background:rgba(102,217,232,.045);
+}
+.avid-ground-slot.has-item{
+  border-color:rgba(102,217,232,.24);
+}
+.avid-ground-slot.is-dragging{
+  opacity:.18;
+  pointer-events:none;
+}
+.avid-ground-slot img{
+  position:absolute;
+  top:7px;
+  left:8px;
+  width:38px;
+  height:38px;
+  object-fit:contain;
+  pointer-events:none;
+}
+.avid-ground-slot>span{
+  position:absolute;
+  right:5px;
+  bottom:4px;
+  left:51px;
+  overflow:hidden;
+  color:#d5e8eb;
+  font-size:.5rem;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.avid-ground-slot em{
+  position:absolute;
+  top:4px;
+  right:5px;
+  color:$accent;
+  font-size:.48rem;
+  font-style:normal;
+}
+.avid-ground-slot>small{
+  position:absolute;
+  top:4px;
+  left:5px;
+  color:rgba(102,217,232,.18);
+  font-size:.44rem;
+}
+
+.avid-live-character{
+  background:radial-gradient(ellipse at 40% 46%,rgba(102,217,232,.018),transparent 55%);
+}
+
+
+/* Match context menu transparency to the rest of the Avid glass UI. */
+.avid-context-menu{
+  background:linear-gradient(180deg,rgba(8,19,25,.34),rgba(4,11,15,.42))!important;
+  backdrop-filter:none!important;
+  box-shadow:0 16px 42px rgba(0,0,0,.18),inset 0 0 22px rgba(102,217,232,.018)!important;
+}
+.avid-context-backdrop{
+  background:transparent!important;
+  backdrop-filter:none!important;
+}
+
+
+/* Keep spatial inventory cells square instead of stretching to panel height. */
+.avid-grid{
+  flex:0 1 auto!important;
+  width:calc(100% - 1.5rem);
+  align-self:center;
+}
+
+
+/* Adjustable stack split control */
+.avid-split-control{
+  margin-top:4px;
+  padding:.55rem .55rem .6rem;
+  border:1px solid rgba(102,217,232,.16);
+  border-radius:4px;
+  background:rgba(102,217,232,.025);
+}
+.avid-split-control>div{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:.45rem;
+}
+.avid-split-control span{
+  color:#cfe8eb;
+  font-size:.56rem;
+}
+.avid-split-control strong{
+  color:$accent;
+  font-size:.54rem;
+  font-weight:500;
+}
+.avid-split-control input[type="range"]{
+  width:100%;
+  height:3px;
+  margin:0 0 .55rem;
+  appearance:none;
+  border-radius:999px;
+  background:rgba(102,217,232,.16);
+  outline:none;
+  cursor:pointer;
+}
+.avid-split-control input[type="range"]::-webkit-slider-thumb{
+  width:12px;
+  height:12px;
+  appearance:none;
+  border:1px solid rgba(220,250,253,.85);
+  border-radius:50%;
+  background:$accent;
+  box-shadow:0 0 10px rgba(102,217,232,.32);
+}
+.avid-split-control button{
+  width:100%;
+  min-height:30px;
+  border:1px solid rgba(102,217,232,.22);
+  border-radius:4px;
+  background:rgba(102,217,232,.035);
+  color:#d6ecef;
+  font-size:.54rem;
+  cursor:pointer;
+}
+.avid-split-control button:hover{
+  border-color:$accent;
+  background:rgba(102,217,232,.075);
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* Final Avid inventory hierarchy                                              */
+/* -------------------------------------------------------------------------- */
+
+.avid-ui{
+  padding:1.25vh 1.55vw 1vh!important;
+  background:
+    radial-gradient(circle at 50% 45%,rgba(2,8,11,.03),rgba(2,8,11,.10) 48%,rgba(2,8,11,.20) 100%),
+    linear-gradient(180deg,rgba(2,8,11,.08),rgba(2,8,11,.18))!important;
+}
+
+/* Slim, useful header. */
+.avid-top{
+  height:50px!important;
+  grid-template-columns:1fr auto auto!important;
+  gap:1rem;
+  padding:0 .15rem 0 .15rem;
+  border-bottom:1px solid rgba(102,217,232,.12);
+  background:linear-gradient(90deg,rgba(4,12,16,.20),rgba(4,12,16,.05),rgba(4,12,16,.16))!important;
+}
+.avid-brand strong{
+  font-size:1.45rem!important;
+  letter-spacing:.20em!important;
+}
+.avid-brand small{
+  margin-top:.08rem!important;
+  font-size:.42rem!important;
+  letter-spacing:.33em!important;
+}
+.avid-controls-hint{
+  display:flex;
+  align-items:center;
+  gap:.85rem;
+  color:rgba(128,155,162,.72);
+  font-size:.49rem;
+  white-space:nowrap;
+}
+.avid-controls-hint span{
+  display:flex;
+  align-items:center;
+  gap:.28rem;
+}
+.avid-controls-hint kbd,
+.avid-equipment-help kbd{
+  padding:.11rem .28rem;
+  border:1px solid rgba(102,217,232,.20);
+  border-radius:3px;
+  background:rgba(102,217,232,.025);
+  color:#cde9ec;
+  font:inherit;
+}
+.avid-top>button{
+  width:30px!important;
+  height:30px!important;
+  margin-left:.25rem;
+  font-size:1rem!important;
+}
+
+/* Main spatial hierarchy. */
+.avid-layout{
+  height:calc(100vh - 90px)!important;
+  margin-top:.75rem;
+  display:grid!important;
+  gap:.7vw!important;
+  align-items:start;
+}
+.avid-layout.has-storage{
+  grid-template-columns:230px minmax(560px,1.45fr) minmax(330px,.82fr)!important;
+}
+.avid-layout.no-storage{
+  grid-template-columns:230px minmax(620px,1fr)!important;
+}
+.avid-external-layout{
+  height:calc(100vh - 90px)!important;
+  margin-top:.75rem;
+  grid-template-columns:230px minmax(760px,1fr)!important;
+  gap:.7vw!important;
+}
+
+/* Equipment is now a compact rail, not a character showcase. */
+.avid-equipment-rail{
+  align-self:start;
+  display:flex;
+  flex-direction:column;
+  max-height:calc(100vh - 110px);
+  background:linear-gradient(180deg,rgba(8,19,25,.30),rgba(4,11,15,.37))!important;
+  backdrop-filter:none!important;
+}
+.avid-equipment-head{
+  min-height:57px!important;
+  padding:.62rem .72rem .52rem!important;
+  background:rgba(3,11,15,.24)!important;
+}
+.avid-equipment-head h2{
+  max-width:190px;
+  overflow:hidden;
+  font-size:.92rem!important;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.avid-equipment{
+  position:static!important;
+  width:auto!important;
+  flex:1;
+  display:flex!important;
+  flex-direction:column;
+  gap:5px!important;
+  padding:.55rem!important;
+}
+.avid-equipment button{
+  position:relative;
+  min-height:68px!important;
+  display:grid!important;
+  grid-template-columns:48px minmax(0,1fr)!important;
+  grid-template-rows:18px 1fr!important;
+  gap:0 .5rem!important;
+  padding:.42rem .48rem!important;
+  border-color:rgba(102,217,232,.12)!important;
+  background:rgba(5,15,20,.18)!important;
+  transition:transform .13s ease,border-color .13s ease,background .13s ease,opacity .13s ease!important;
+}
+.avid-equipment button small{
+  grid-column:1/-1!important;
+  color:#678087!important;
+  font-size:.43rem!important;
+  letter-spacing:.15em!important;
+}
+.avid-equipment button img{
+  width:46px!important;
+  height:38px!important;
+  object-fit:contain;
+}
+.avid-equipment button span{
+  align-self:center;
+  font-size:.56rem!important;
+}
+.avid-equipment button.has-item{
+  border-color:rgba(102,217,232,.23)!important;
+  background:
+    radial-gradient(circle at 22% 58%,rgba(102,217,232,.035),transparent 50%),
+    rgba(5,15,20,.24)!important;
+}
+.avid-equipment button.is-essential:hover,
+.avid-equipment button.has-item:hover{
+  transform:translateX(2px);
+  border-color:rgba(102,217,232,.62)!important;
+  background:rgba(102,217,232,.045)!important;
+}
+.avid-equipment button.is-combat.is-subdued{
+  opacity:.18!important;
+}
+.avid-equipment button.is-combat.is-subdued:hover,
+.avid-equipment button.is-combat.is-compatible{
+  opacity:1!important;
+}
+.avid-equipment button:nth-child(4){
+  margin-top:.38rem;
+}
+.avid-equipment button:nth-child(4):before{
+  content:"GEAR";
+  position:absolute;
+  top:-.48rem;
+  left:.15rem;
+  padding:0 .25rem;
+  background:rgba(5,13,17,.82);
+  color:rgba(102,217,232,.42);
+  font-size:.38rem;
+  letter-spacing:.18em;
+}
+.avid-equipment-help{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.35rem;
+  padding:.48rem .4rem .55rem;
+  border-top:1px solid rgba(102,217,232,.08);
+  color:#536d74;
+  font-size:.43rem;
+}
+.avid-equipment-help>span{
+  width:1px;
+  height:12px;
+  margin:0 .18rem;
+  background:rgba(102,217,232,.10);
+}
+
+/* Pockets become the hero surface. */
+.avid-grid-panel{
+  align-self:start;
+  background:linear-gradient(180deg,rgba(8,19,25,.31),rgba(4,11,15,.39))!important;
+  box-shadow:inset 0 0 35px rgba(0,0,0,.06),0 9px 24px rgba(0,0,0,.06)!important;
+}
+.avid-layout>.avid-grid-panel{
+  border-color:rgba(102,217,232,.31)!important;
+}
+.avid-grid-head{
+  min-height:66px!important;
+  display:grid!important;
+  grid-template-columns:minmax(150px,1fr) minmax(170px,240px) 120px;
+  gap:.75rem!important;
+  padding:.66rem .8rem .58rem!important;
+}
+.avid-grid-title{
+  min-width:0;
+}
+.avid-grid-title h2{
+  font-size:1rem!important;
+}
+.avid-grid-title p{
+  margin-top:.1rem!important;
+  font-size:.52rem!important;
+}
+.avid-grid-search{
+  height:30px;
+  align-self:center;
+  display:flex;
+  align-items:center;
+  gap:.4rem;
+  padding:0 .58rem;
+  border:1px solid rgba(102,217,232,.16);
+  border-radius:4px;
+  background:rgba(3,11,15,.26);
+}
+.avid-grid-search>span{
+  color:$accent;
+  font-size:.7rem;
+}
+.avid-grid-search input{
+  width:100%;
+  min-width:0;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:#d8edef;
+  font-size:.55rem;
+}
+.avid-grid-search input::placeholder{
+  color:#506970;
+}
+
+/* Weight gets a full-width visual cue instead of being microscopic. */
+.avid-weight{
+  width:120px!important;
+  align-self:center;
+}
+.avid-weight>div{
+  margin-bottom:.28rem!important;
+  font-size:.47rem!important;
+}
+.avid-weight>i{
+  height:3px!important;
+  background:rgba(255,255,255,.055)!important;
+}
+.avid-weight b{
+  background:$accent!important;
+  transition:background .18s ease,box-shadow .18s ease;
+}
+.avid-weight.is-heavy b{
+  background:#d9a55e!important;
+  box-shadow:0 0 8px rgba(217,165,94,.35)!important;
+}
+.avid-weight.is-full b{
+  background:#d97979!important;
+  box-shadow:0 0 8px rgba(217,121,121,.38)!important;
+}
+
+/* Cleaner spatial board. */
+.avid-grid{
+  margin:.6rem!important;
+  width:calc(100% - 1.2rem)!important;
+  gap:4px!important;
+  background:transparent!important;
+}
+.avid-cell{
+  border-color:rgba(102,217,232,.10)!important;
+  background:linear-gradient(145deg,rgba(8,21,27,.24),rgba(4,13,17,.16))!important;
+}
+.avid-grid.is-drag-target .avid-cell{
+  border-color:rgba(102,217,232,.15)!important;
+}
+.avid-item{
+  margin:1px!important;
+  border-color:rgba(102,217,232,.20)!important;
+  background:
+    radial-gradient(circle at 50% 38%,rgba(102,217,232,.032),transparent 58%),
+    linear-gradient(145deg,rgba(12,27,34,.60),rgba(6,16,21,.57))!important;
+  box-shadow:none!important;
+  transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease,opacity .12s ease!important;
+}
+.avid-item:hover,
+.avid-item.is-selected{
+  z-index:8;
+  transform:translateY(-2px);
+  border-color:rgba(102,217,232,.74)!important;
+  box-shadow:0 7px 18px rgba(0,0,0,.14),inset 0 0 18px rgba(102,217,232,.035)!important;
+}
+.avid-grid.is-drag-target .avid-item:hover{
+  border-color:$accent!important;
+  box-shadow:0 0 0 1px rgba(102,217,232,.24),0 0 15px rgba(102,217,232,.10)!important;
+}
+.avid-item img{
+  inset:8% 8% 20%!important;
+  width:84%!important;
+  height:72%!important;
+}
+.avid-item em{
+  top:.22rem!important;
+  right:.22rem!important;
+  min-width:20px;
+  padding:.11rem .26rem;
+  border:1px solid rgba(102,217,232,.26);
+  border-radius:999px;
+  background:rgba(4,15,19,.66);
+  color:#cfffff!important;
+  font-size:.44rem!important;
+  text-align:center;
+}
+.avid-item>span{
+  right:0!important;
+  bottom:0!important;
+  left:0!important;
+  padding:.42rem .36rem .28rem;
+  background:linear-gradient(180deg,transparent,rgba(2,9,12,.74));
+  color:#d9e8ea!important;
+  font-size:.48rem!important;
+}
+
+/* Right side only exists when there is something meaningful to show. */
+.avid-right{
+  align-self:start;
+  min-height:0;
+  display:flex!important;
+  flex-direction:column;
+  gap:.55rem!important;
+}
+.avid-right>.avid-grid-panel{
+  width:100%;
+}
+.avid-ground-panel{
+  width:100%;
+  min-height:190px!important;
+  height:auto!important;
+  background:linear-gradient(180deg,rgba(8,19,25,.29),rgba(4,11,15,.36))!important;
+}
+.avid-ground-panel .avid-panel-head{
+  min-height:56px!important;
+  padding:.55rem .7rem .45rem!important;
+}
+.avid-ground-panel .avid-panel-head p{
+  display:none;
+}
+
+/* External ox inventories stay compatible but visually sit under the Avid shell. */
+.avid-stock-transfer{
+  background:linear-gradient(180deg,rgba(8,19,25,.35),rgba(4,11,15,.44))!important;
+  backdrop-filter:none!important;
+}
+.avid-stock-transfer>.avid-panel-head{
+  min-height:58px!important;
+  padding:.6rem .75rem .5rem!important;
+}
+
+/* Context stays glassy and quiet. */
+.avid-context-menu{
+  width:238px!important;
+  border-color:rgba(102,217,232,.28)!important;
+  background:linear-gradient(180deg,rgba(7,18,24,.76),rgba(3,10,14,.80))!important;
+  box-shadow:0 16px 44px rgba(0,0,0,.20)!important;
+}
+.avid-context-head strong{
+  font-size:.82rem!important;
+}
+.avid-context-menu>button{
+  min-height:31px!important;
+}
+
+/* Retire every old character-preview visual. */
+.avid-character,
+.avid-character-body,
+.avid-live-character,
+.avid-avatar,
+.avid-person,
+.avid-no-bag,
+.avid-toolbar,
+.avid-top-title{
+  display:none!important;
+}
+
+.avid-footer{
+  height:24px!important;
+  align-items:center!important;
+  opacity:.55;
+  font-size:.40rem!important;
+}
+
+@media(max-width:1500px){
+  .avid-layout.has-storage{
+    grid-template-columns:205px minmax(500px,1.35fr) minmax(305px,.78fr)!important;
+  }
+  .avid-layout.no-storage{
+    grid-template-columns:205px minmax(560px,1fr)!important;
+  }
+  .avid-external-layout{
+    grid-template-columns:205px minmax(700px,1fr)!important;
+  }
+  .avid-controls-hint{
+    gap:.55rem;
+    font-size:.44rem;
+  }
+  .avid-grid-head{
+    grid-template-columns:minmax(130px,1fr) minmax(140px,190px) 104px;
+  }
+  .avid-equipment button{
+    min-height:61px!important;
+  }
+}
+
+
+/* Keep the Avid inventory footprint stable whether portable storage exists or not. */
+.avid-layout{
+  grid-template-columns:230px minmax(560px,1.45fr) minmax(330px,.82fr)!important;
+}
+.avid-layout.has-storage,
+.avid-layout.no-storage{
+  grid-template-columns:230px minmax(560px,1.45fr) minmax(330px,.82fr)!important;
+}
+.avid-right{
+  animation:avid-storage-reveal 240ms cubic-bezier(.2,.75,.25,1) both;
+  transform-origin:top right;
+}
+@keyframes avid-storage-reveal{
+  from{
+    opacity:0;
+    transform:translateX(18px) scale(.985);
+  }
+  to{
+    opacity:1;
+    transform:translateX(0) scale(1);
+  }
+}
+@media(max-width:1500px){
+  .avid-layout,
+  .avid-layout.has-storage,
+  .avid-layout.no-storage{
+    grid-template-columns:205px minmax(500px,1.35fr) minmax(305px,.78fr)!important;
+  }
+}
+
+
+/* Spatial external storage */
+.avid-spatial-external{
+  grid-template-columns:230px minmax(560px,1.25fr) minmax(390px,1fr)!important;
+}
+.avid-spatial-external .avid-right{
+  min-width:0;
+}
+.avid-grid-panel.is-external{
+  width:100%;
+  animation:avid-storage-reveal 220ms cubic-bezier(.2,.75,.25,1) both;
+  border-color:rgba(102,217,232,.27)!important;
+}
+.avid-grid-panel.is-external .avid-grid-head{
+  grid-template-columns:minmax(150px,1fr) 120px!important;
+}
+.avid-grid-panel.is-external .avid-grid-search{
+  display:none!important;
+}
+.avid-grid-panel.is-external .avid-grid{
+  width:calc(100% - 1.2rem)!important;
+}
+.avid-grid-panel.is-external .avid-cell{
+  border-color:rgba(102,217,232,.12)!important;
+}
+.avid-grid-panel.is-external .avid-item:hover{
+  border-color:rgba(102,217,232,.78)!important;
+}
+@media(max-width:1500px){
+  .avid-spatial-external{
+    grid-template-columns:205px minmax(500px,1.18fr) minmax(340px,.92fr)!important;
+  }
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* Player-to-player search / inspection                                        */
+/* -------------------------------------------------------------------------- */
+
+.avid-player-search{
+  grid-template-columns:230px minmax(540px,1.22fr) minmax(400px,.95fr)!important;
+}
+
+.avid-search-column{
+  min-width:0;
+  max-height:calc(100vh - 110px);
+  display:flex;
+  flex-direction:column;
+  gap:.55rem;
+  overflow-y:auto;
+  padding-right:2px;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(102,217,232,.26) transparent;
+}
+
+.avid-search-equipment{
+  flex:0 0 auto;
+  background:linear-gradient(180deg,rgba(8,19,25,.32),rgba(4,11,15,.40))!important;
+  border-color:rgba(102,217,232,.28)!important;
+}
+
+.avid-search-equipment>.avid-panel-head{
+  min-height:58px!important;
+  padding:.58rem .72rem .48rem!important;
+  background:rgba(3,11,15,.24)!important;
+}
+
+.avid-search-equipment>.avid-panel-head h2{
+  max-width:260px;
+  overflow:hidden;
+  font-size:.92rem!important;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.avid-search-equipment>.avid-panel-head p{
+  margin-top:.08rem!important;
+  color:#6e858b!important;
+  font-size:.46rem!important;
+}
+
+.avid-search-equipment-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:5px;
+  padding:.55rem;
+}
+
+.avid-search-equipment-grid button{
+  position:relative;
+  min-height:68px;
+  display:grid;
+  grid-template-columns:46px minmax(0,1fr);
+  grid-template-rows:17px 1fr;
+  gap:0 .48rem;
+  padding:.42rem .46rem;
+  overflow:hidden;
+  border:1px solid rgba(102,217,232,.14);
+  border-radius:4px;
+  background:rgba(5,15,20,.20);
+  color:#d4e8ea;
+  text-align:left;
+  cursor:context-menu;
+  transition:border-color .13s ease,background .13s ease,transform .13s ease;
+}
+
+.avid-search-equipment-grid button:hover{
+  transform:translateY(-1px);
+  border-color:rgba(219,160,111,.62);
+  background:rgba(219,160,111,.035);
+}
+
+.avid-search-equipment-grid button small{
+  grid-column:1/-1;
+  overflow:hidden;
+  color:#71888e;
+  font-size:.41rem;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.avid-search-equipment-grid button img{
+  width:43px;
+  height:39px;
+  object-fit:contain;
+}
+
+.avid-search-equipment-grid button span{
+  align-self:center;
+  overflow:hidden;
+  font-size:.53rem;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.avid-search-equipment-grid button em{
+  position:absolute;
+  right:5px;
+  bottom:4px;
+  color:rgba(219,160,111,.72);
+  font-size:.38rem;
+  font-style:normal;
+  letter-spacing:.12em;
+}
+
+.avid-search-empty{
+  padding:.9rem .75rem 1rem;
+  color:#587078;
+  font-size:.5rem;
+  text-align:center;
+}
+
+.avid-grid-panel.is-searched,
+.avid-grid-panel.is-searchedBackpack{
+  width:100%;
+  flex:0 0 auto;
+  border-color:rgba(102,217,232,.22)!important;
+  background:linear-gradient(180deg,rgba(8,19,25,.29),rgba(4,11,15,.37))!important;
+}
+
+.avid-grid-panel.is-searched .avid-grid-head,
+.avid-grid-panel.is-searchedBackpack .avid-grid-head{
+  grid-template-columns:minmax(150px,1fr) 120px!important;
+}
+
+.avid-grid-panel.is-searched .avid-grid-search,
+.avid-grid-panel.is-searchedBackpack .avid-grid-search{
+  display:none!important;
+}
+
+.avid-grid-panel.is-searched .avid-item:hover,
+.avid-grid-panel.is-searchedBackpack .avid-item:hover{
+  border-color:rgba(219,160,111,.72)!important;
+  box-shadow:0 7px 18px rgba(0,0,0,.12),inset 0 0 16px rgba(219,160,111,.025)!important;
+}
+
+.avid-context-menu>button.is-confiscate{
+  border-color:rgba(219,160,111,.34);
+  color:#efc7a8;
+}
+
+.avid-context-menu>button.is-confiscate:hover{
+  border-color:rgba(219,160,111,.72);
+  background:rgba(219,160,111,.07);
+  color:#ffe3cd;
+}
+
+@media(max-width:1500px){
+  .avid-player-search{
+    grid-template-columns:205px minmax(470px,1.15fr) minmax(350px,.90fr)!important;
+  }
+
+  .avid-search-equipment-grid{
+    grid-template-columns:1fr;
+  }
+}

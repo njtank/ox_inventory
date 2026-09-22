@@ -64,6 +64,36 @@ return {
 		}
 	},
 
+	['backpack_small'] = {
+		label = 'Small Backpack',
+		weight = 900,
+		stack = false,
+		close = false,
+		consume = 0,
+		description = 'A compact everyday backpack with 6x5 storage.',
+		client = { image = 'backpack_small.png' }
+	},
+
+	['backpack_medium'] = {
+		label = 'Backpack',
+		weight = 1300,
+		stack = false,
+		close = false,
+		consume = 0,
+		description = 'A practical everyday backpack with 7x6 storage.',
+		client = { image = 'backpack_medium.png' }
+	},
+
+	['backpack_large'] = {
+		label = 'Large Backpack',
+		weight = 1900,
+		stack = false,
+		close = false,
+		consume = 0,
+		description = 'A larger backpack with 8x7 storage for work, travel, or long days in the city.',
+		client = { image = 'backpack_large.png' }
+	},
+
 	['black_money'] = {
 		label = 'Dirty Money',
 	},
@@ -78,6 +108,87 @@ return {
 			usetime = 2500,
 			notification = 'You ate a delicious burger'
 		},
+	},
+
+	['sandwich'] = {
+		label = 'Deli Sandwich',
+		weight = 250,
+		client = {
+			image = 'sandwich.png',
+			status = { hunger = 250000 },
+			anim = 'eating',
+			usetime = 2500,
+			cancel = true,
+			notification = 'You ate a deli sandwich'
+		}
+	},
+
+	['donut'] = {
+		label = 'Donut',
+		weight = 150,
+		client = {
+			image = 'donut.png',
+			status = { hunger = 150000 },
+			anim = 'eating',
+			usetime = 2000,
+			cancel = true,
+			notification = 'You ate a donut'
+		}
+	},
+
+	['chocolate_bar'] = {
+		label = 'Chocolate Bar',
+		weight = 100,
+		client = {
+			image = 'chocolate_bar.png',
+			status = { hunger = 120000 },
+			anim = 'eating',
+			usetime = 1800,
+			cancel = true,
+			notification = 'You ate a chocolate bar'
+		}
+	},
+
+	['chips'] = {
+		label = 'Bag of Chips',
+		weight = 150,
+		client = {
+			image = 'chips.png',
+			status = { hunger = 120000 },
+			anim = 'eating',
+			usetime = 2000,
+			cancel = true,
+			notification = 'You ate some chips'
+		}
+	},
+
+	['energy_drink'] = {
+		label = 'Energy Drink',
+		weight = 350,
+		client = {
+			image = 'energy_drink.png',
+			status = { thirst = 200000 },
+			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
+			prop = { model = `prop_ld_can_01`, pos = vec3(0.01, 0.01, 0.06), rot = vec3(5.0, 5.0, -180.5) },
+			usetime = 2500,
+			cancel = true,
+			notification = 'You drank an energy drink'
+		}
+	},
+
+	['cigarettes'] = {
+		label = 'Cigarettes',
+		weight = 200,
+		consume = 0.05,
+		client = {
+			image = 'cigarettes.png',
+			status = { stress = -100000 },
+			anim = { dict = 'amb@world_human_smoking@male@male_a@enter', clip = 'enter' },
+			prop = { model = `prop_cs_ciggy_01`, pos = vec3(0.015, 0.0, 0.0), rot = vec3(0.0, 0.0, 0.0) },
+			usetime = 2500,
+			cancel = true,
+			notification = 'You smoked a cigarette'
+		}
 	},
 
 	['sprunk'] = {

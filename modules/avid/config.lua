@@ -1,0 +1,113 @@
+return {
+    version = 1,
+
+    playerGrid = { cols = 8, rows = 6 },
+
+    containerLayouts = {
+        [30] = { cols = 6, rows = 5 },
+        [42] = { cols = 7, rows = 6 },
+        [56] = { cols = 8, rows = 7 },
+    },
+
+    defaultItemSize = { w = 1, h = 1 },
+
+    externalStorage = {
+        supported = {
+            stash = true,
+            policeevidence = true,
+            trunk = true,
+            glovebox = true,
+            container = true,
+            dumpster = true,
+            temp = true,
+        },
+        columns = {
+            glovebox = 5,
+            trunk = 8,
+            stash = 8,
+            policeevidence = 8,
+            container = 7,
+            dumpster = 6,
+            temp = 8,
+        },
+        defaultColumns = 8,
+    },
+
+    itemSizes = {
+        phone = { w = 1, h = 1 },
+        burnerphone = { w = 1, h = 1 },
+        radio = { w = 1, h = 1 },
+        water = { w = 1, h = 1 },
+        coffee = { w = 1, h = 1 },
+        sandwich = { w = 1, h = 1 },
+        donut = { w = 1, h = 1 },
+        chocolate_bar = { w = 1, h = 1 },
+        chips = { w = 1, h = 1 },
+        energy_drink = { w = 1, h = 1 },
+        cigarettes = { w = 1, h = 1 },
+        burger = { w = 1, h = 1 },
+        bandage = { w = 1, h = 1 },
+        lockpick = { w = 1, h = 1 },
+        advancedlockpick = { w = 1, h = 1 },
+        repairkit = { w = 2, h = 2 },
+        advancedrepairkit = { w = 2, h = 2 },
+        toolkit = { w = 2, h = 2 },
+        camera = { w = 2, h = 2 },
+        binoculars = { w = 2, h = 2 },
+        armour_plate = { w = 2, h = 2 },
+        light_armour = { w = 2, h = 3 },
+        heavy_armour = { w = 3, h = 3 },
+        backpack_small = { w = 2, h = 2 },
+        backpack_medium = { w = 2, h = 3 },
+        backpack_large = { w = 3, h = 3 },
+
+        WEAPON_PISTOL = { w = 2, h = 2 },
+        WEAPON_COMBATPISTOL = { w = 2, h = 2 },
+        WEAPON_APPISTOL = { w = 2, h = 2 },
+        WEAPON_PISTOL50 = { w = 2, h = 2 },
+        WEAPON_SNSPISTOL = { w = 2, h = 2 },
+        WEAPON_HEAVYPISTOL = { w = 2, h = 2 },
+
+        WEAPON_MICROSMG = { w = 2, h = 4 },
+        WEAPON_SMG = { w = 2, h = 4 },
+        WEAPON_CARBINERIFLE = { w = 2, h = 5 },
+        WEAPON_CARBINERIFLE_MK2 = { w = 2, h = 5 },
+        WEAPON_ASSAULTRIFLE = { w = 2, h = 5 },
+        WEAPON_PUMPSHOTGUN = { w = 2, h = 6 },
+
+        WEAPON_KNIFE = { w = 1, h = 3 },
+        WEAPON_BAT = { w = 1, h = 4 },
+        WEAPON_CROWBAR = { w = 1, h = 4 },
+        WEAPON_HAMMER = { w = 1, h = 3 },
+    },
+
+    equipment = {
+        phone = { label = 'Phone', items = { phone = true, burnerphone = true } },
+        radio = { label = 'Radio', items = { radio = true } },
+        backpack = { label = 'Bag', items = {
+            backpack_small = true,
+            backpack_medium = true,
+            backpack_large = true,
+        }},
+        armor = { label = 'Armor', items = {
+            armour = true,
+            light_armour = true,
+            heavy_armour = true,
+        }},
+        secondary = { label = 'Secondary', items = {
+            WEAPON_PISTOL = true,
+            WEAPON_COMBATPISTOL = true,
+            WEAPON_APPISTOL = true,
+            WEAPON_PISTOL50 = true,
+            WEAPON_SNSPISTOL = true,
+            WEAPON_HEAVYPISTOL = true,
+        }},
+        melee = { label = 'Melee', items = {
+            WEAPON_KNIFE = true,
+            WEAPON_BAT = true,
+            WEAPON_CROWBAR = true,
+            WEAPON_HAMMER = true,
+        }},
+        primary = { label = 'Primary', weaponFallback = true },
+    },
+}
