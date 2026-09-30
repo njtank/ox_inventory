@@ -66,6 +66,19 @@ RegisterNUICallback('avid:move', function(data, cb)
     respond(cb, lib.callback.await('ox_inventory:avid:move', false, data))
 end)
 
+RegisterNUICallback('avid:evidence', function(data, cb)
+    cb({ success = true })
+
+    if GetResourceState('avid_police') ~= 'started' then
+        return lib.notify({
+            type = 'error',
+            description = 'Avid Police is unavailable, so this item cannot be logged as evidence.',
+        })
+    end
+
+    TriggerEvent('avid_police:client:evidenceContext', data)
+end)
+
 
 local institutionalLockers = {
     police = 'policelocker',
