@@ -10,6 +10,7 @@ Development branch: `feature/avid-inventory-v1`
 - Tarkov-style spatial item footprints
 - spatial collision checks with fixed item orientation
 - equipment slots for phone, radio, backpack, armor, primary, secondary, and melee
+- semantic weapon hotkeys: 1 equips/holsters Primary, 2 equips/holsters Secondary
 - backpack items are true ox_inventory containers
 - spatial external storage for stashes, trunks, gloveboxes, evidence, dumpsters, and temp inventories
 - spatial player-search workflow with explicit equipped-item confiscation
