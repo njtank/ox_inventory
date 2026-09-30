@@ -697,6 +697,27 @@ local function useSlot(slot, noAnim)
 end
 exports('useSlot', useSlot)
 
+local function getAvidEquippedSlot(equipmentSlot)
+	if not PlayerData.loaded then return end
+
+	for slot, item in pairs(PlayerData.inventory) do
+		if item?.avid?.equipped == equipmentSlot then
+			local itemData = Items[item.name]
+
+			if itemData?.weapon then
+				return tonumber(slot)
+			end
+		end
+	end
+end
+
+local function useAvidWeaponHotkey(equipmentSlot)
+	local slot = getAvidEquippedSlot(equipmentSlot)
+	if not slot then return end
+
+	return useSlot(slot)
+end
+
 ---@param id number
 ---@param slot number
 local function useButton(id, slot)
@@ -869,13 +890,24 @@ local function registerCommands()
 	})
 
 	for i = 1, 5 do
+		local hotkey = i
+
 		lib.addKeybind({
-			name = ('hotkey%s'):format(i),
-			description = locale('use_hotbar', i),
-			defaultKey = tostring(i),
+			name = ('hotkey%s'):format(hotkey),
+			description = hotkey == 1 and 'Equip primary weapon'
+				or hotkey == 2 and 'Equip secondary weapon'
+				or locale('use_hotbar', hotkey),
+			defaultKey = tostring(hotkey),
 			onPressed = function()
 				if invOpen or EnableWeaponWheel or not invHotkeys or IsNuiFocused() then return end
-				useSlot(i)
+
+				if hotkey == 1 then
+					return useAvidWeaponHotkey('primary')
+				elseif hotkey == 2 then
+					return useAvidWeaponHotkey('secondary')
+				end
+
+				useSlot(hotkey)
 			end
 		})
 	end
