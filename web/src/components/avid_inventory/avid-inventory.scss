@@ -1328,3 +1328,14 @@ $line:rgba(102,217,232,.25);
     grid-template-columns:1fr;
   }
 }
+
+
+.avid-context-menu>button.is-evidence{
+  border-color:rgba(102,217,232,.34);
+  color:#bcecf1;
+}
+.avid-context-menu>button.is-evidence:hover{
+  border-color:rgba(102,217,232,.78);
+  background:rgba(102,217,232,.07);
+  color:#effdff;
+}
