@@ -433,7 +433,8 @@ const ContextMenu: React.FC<{
   onEquip: (slot: string) => void;
   onUnequip: () => void;
   onConfiscate: () => void;
-}> = ({ context, onClose, onUse, onGive, onDrop, onQuickMove, onSplit, onEquip, onUnequip, onConfiscate }) => {
+  onEvidence: () => void;
+}> = ({ context, onClose, onUse, onGive, onDrop, onQuickMove, onSplit, onEquip, onUnequip, onConfiscate, onEvidence }) => {
   const maxSplit = context ? Math.max(1, context.item.count - 1) : 1;
   const [splitAmount, setSplitAmount] = useState(1);
 
@@ -473,12 +474,19 @@ const ContextMenu: React.FC<{
         {context.kind === 'equipment' ? (
           <button onClick={onUnequip}>Return to pockets</button>
         ) : context.kind === 'searchedEquipment' ? (
-          <button className="is-confiscate" onClick={onConfiscate}>Confiscate Equipped Item</button>
+          <>
+            <button className="is-confiscate" onClick={onConfiscate}>Confiscate Equipped Item</button>
+            <button className="is-evidence" onClick={onEvidence}>Add to Evidence</button>
+          </>
         ) : (
           <>
             <button onClick={onUse} disabled={context.kind !== 'pockets'}>Use</button>
             <button onClick={onGive} disabled={context.kind !== 'pockets'}>Give</button>
             <button onClick={onQuickMove}>Quick Move</button>
+
+            {(context.kind === 'searched' || context.kind === 'searchedBackpack') && (
+              <button className="is-evidence" onClick={onEvidence}>Add to Evidence</button>
+            )}
 
             {context.item.count > 1 &&
               context.kind !== 'searched' &&
@@ -716,6 +724,28 @@ const AvidInventory: React.FC = () => {
     if (result.state) setState(result.state); else void refresh();
     setSelected(null);
   }, [refresh, show]);
+
+  const addToEvidence = useCallback(async () => {
+    if (!context || !state?.searched) return;
+    if (context.kind !== 'searched' && context.kind !== 'searchedBackpack' && context.kind !== 'searchedEquipment') return;
+
+    const result = await fetchNui<ActionResponse>('avid:evidence', {
+      target: state.searched.id,
+      sourceKind: context.kind,
+      slot: context.item.slot,
+      count: context.item.count,
+      label: context.item.label,
+      item: context.item.name,
+      equipmentSlot: context.equipmentSlot,
+    });
+
+    if (result && result.success === false) {
+      show(result.error || 'Unable to start evidence collection');
+      return;
+    }
+
+    setContext(null);
+  }, [context, state?.searched, show]);
 
   const confiscateEquipped = useCallback(async (equipmentSlot: string) => {
     const result = await fetchNui<ActionResponse>('avid:confiscateEquipped', { equipmentSlot });
@@ -1158,6 +1188,9 @@ const AvidInventory: React.FC = () => {
             if (context?.kind === 'searchedEquipment' && context.equipmentSlot) {
               void confiscateEquipped(context.equipmentSlot);
             }
+          }}
+          onEvidence={() => {
+            void addToEvidence();
           }}
         />
 
