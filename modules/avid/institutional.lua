@@ -44,6 +44,88 @@ local function normalizeCoords(coords)
 end
 
 return function(Inventory)
+    local function clone(value)
+        if type(value) ~= 'table' then return value end
+
+        local ok, encoded = pcall(json.encode, value)
+        if not ok or not encoded then return {} end
+
+        local decodedOk, decoded = pcall(json.decode, encoded)
+        return decodedOk and decoded or {}
+    end
+
+    local function targetBackpack(target)
+        for _, item in pairs(target.items or {}) do
+            if item and item.avid and item.avid.equipped == 'backpack' and item.metadata and item.metadata.container then
+                return Inventory(item.metadata.container), item
+            end
+        end
+    end
+
+    local function resolveEvidenceSource(officerId, data)
+        data = type(data) == 'table' and data or {}
+
+        local officer = Inventory(officerId)
+        local targetId = tonumber(data.target)
+        local target = targetId and Inventory(targetId)
+
+        if not officer or not officer.player or not target or not target.player then
+            return nil, 'invalid_search_target'
+        end
+
+        if not server.hasGroup(officer, shared.police) then
+            return nil, 'police_access_required'
+        end
+
+        local officerCoords = GetEntityCoords(officer.player.ped)
+        local targetCoords = GetEntityCoords(target.player.ped)
+
+        if #(officerCoords - targetCoords) > 4.0 then
+            return nil, 'search_target_too_far'
+        end
+
+        local kind = tostring(data.sourceKind or '')
+        local fromInventory = target
+
+        if kind == 'searchedBackpack' then
+            fromInventory = targetBackpack(target)
+            if not fromInventory then
+                return nil, 'searched_backpack_missing'
+            end
+        elseif kind ~= 'searched' and kind ~= 'searchedEquipment' then
+            return nil, 'invalid_evidence_source'
+        end
+
+        local slot = tonumber(data.slot)
+        local item = slot and fromInventory.items[slot]
+
+        if not item then
+            return nil, 'item_missing'
+        end
+
+        if kind == 'searched' and item.avid and item.avid.equipped then
+            return nil, 'item_is_equipped'
+        end
+
+        if kind == 'searchedEquipment' then
+            local expected = tostring(data.equipmentSlot or '')
+            local equippedSlot = item.avid and item.avid.equipped
+
+            if not equippedSlot or (expected ~= '' and equippedSlot ~= expected) then
+                return nil, 'equipment_changed'
+            end
+        end
+
+        return {
+            officer = officer,
+            target = target,
+            inventory = fromInventory,
+            item = item,
+            slot = slot,
+            kind = kind,
+        }
+    end
+
     local function rebuildInventory(inv, snapshot)
         local inventory, totalWeight = {}, 0
         local ostime = os.time()
@@ -200,6 +282,124 @@ return function(Inventory)
 
     lib.callback.register('ox_inventory:avid:hasPrisonProperty', function(source)
         return hasPrisonProperty(source)
+    end)
+
+    exports('InspectEvidenceSource', function(officerId, data)
+        local resolved, reason = resolveEvidenceSource(officerId, data)
+        if not resolved then return false, reason end
+
+        local item = resolved.item
+
+        return true, {
+            name = item.name,
+            label = item.label,
+            count = item.count,
+            weight = item.weight,
+            metadata = clone(item.metadata or {}),
+            avid = clone(item.avid or {}),
+            inventoryId = resolved.inventory.id,
+            inventoryType = resolved.inventory.type,
+            targetId = resolved.target.id,
+        }
+    end)
+
+    exports('StoreEvidenceItem', function(officerId, data)
+        local resolved, reason = resolveEvidenceSource(officerId, data)
+        if not resolved then return false, reason end
+
+        data = type(data) == 'table' and data or {}
+        local lockerKey = tostring(data.lockerKey or ''):upper():gsub('[^%w%-%_]', '-'):sub(1, 100)
+        if lockerKey == '' then return false, 'invalid_evidence_locker' end
+
+        local item = resolved.item
+        local count = math.max(1, math.min(math.floor(tonumber(data.count) or 1), item.count))
+
+        if item.metadata and item.metadata.avidEvidence then
+            return false, 'item_already_evidence'
+        end
+
+        if data.expectedName and tostring(data.expectedName) ~= item.name then
+            return false, 'item_changed'
+        end
+
+        local evidenceMetadata = clone(data.metadata or {})
+        if type(evidenceMetadata) ~= 'table' or not evidenceMetadata.avidEvidence then
+            return false, 'evidence_metadata_required'
+        end
+
+        evidenceMetadata.avidEvidence.lockerKey = lockerKey
+
+        local destination = Inventory(('evidence-%s'):format(lockerKey))
+        if not destination or destination.type ~= 'policeevidence' then
+            return false, 'evidence_locker_unavailable'
+        end
+
+        if not Inventory.CanCarryItem(destination, item.name, count, evidenceMetadata) then
+            return false, 'evidence_locker_full'
+        end
+
+        local originalMetadata = clone(item.metadata or {})
+        local originalAvid = clone(item.avid or {})
+        local originalCount = item.count
+        local wasWeapon = resolved.inventory == resolved.target and resolved.target.weapon == resolved.slot
+
+        local removed, removeReason = Inventory.RemoveItem(
+            resolved.inventory,
+            item.name,
+            count,
+            originalMetadata,
+            resolved.slot,
+            false,
+            true
+        )
+
+        if not removed then
+            return false, removeReason or 'evidence_remove_failed'
+        end
+
+        local added, response = Inventory.AddItem(destination, item.name, count, evidenceMetadata)
+
+        if not added then
+            local restored, restoreResponse = Inventory.AddItem(
+                resolved.inventory,
+                item.name,
+                count,
+                originalMetadata,
+                resolved.slot
+            )
+
+            if restored and originalCount == count then
+                local restoredSlot = type(restoreResponse) == 'table' and restoreResponse.slot or resolved.slot
+
+                if originalAvid.equipped then
+                    Spatial.SetEquipped(resolved.inventory, restoredSlot, originalAvid.equipped)
+                elseif originalAvid.grid then
+                    Spatial.SetGrid(
+                        resolved.inventory,
+                        restoredSlot,
+                        originalAvid.grid.x,
+                        originalAvid.grid.y,
+                        false
+                    )
+                end
+            end
+
+            return false, response or 'evidence_store_failed'
+        end
+
+        if wasWeapon and originalCount == count then
+            resolved.target.weapon = nil
+            TriggerClientEvent('ox_inventory:disarm', resolved.target.id)
+        end
+
+        local destinationSlot = type(response) == 'table' and response.slot or nil
+
+        return true, {
+            lockerId = destination.id,
+            lockerKey = lockerKey,
+            slot = destinationSlot,
+            count = count,
+        }
     end)
 
     exports('StorePrisonProperty', storePrisonProperty)
