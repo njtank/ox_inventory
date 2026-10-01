@@ -71,13 +71,50 @@ World targets and MLO coordinates should stay in the owning police/EMS/legal res
 
 ## Evidence storage
 
-Evidence storage uses spatial `policeevidence` inventories. Locker labels include the supplied case identifier.
+Evidence storage uses spatial `policeevidence` inventories. The canonical integration is:
 
-```lua
-exports.ox_inventory:openEvidenceLocker('25-0417')
+```text
+Avid player search
+    -> avid_police report prompt
+    -> avid_mdt evidence record / locker resolution
+    -> ox_inventory case evidence storage
+    -> avid_mdt custody log
 ```
 
-Calling `openEvidenceLocker()` without a case id uses the normal evidence-number prompt. Existing police-group security is still enforced server-side.
+The Avid search context exposes **Add to Evidence** for searched pockets, equipped gear, and the searched player's equipped backpack contents.
+
+Case/report lockers open through:
+
+```lua
+exports.ox_inventory:openEvidenceLocker('CASE-26-00012')
+```
+
+Server-side police integrations use these inventory exports:
+
+```lua
+local ok, item = exports.ox_inventory:InspectEvidenceSource(officerSource, {
+    target = targetServerId,
+    sourceKind = 'searched', -- searched | searchedBackpack | searchedEquipment
+    slot = slot,
+    equipmentSlot = nil,
+})
+
+local stored, result = exports.ox_inventory:StoreEvidenceItem(officerSource, {
+    target = targetServerId,
+    sourceKind = 'searched',
+    slot = slot,
+    count = 1,
+    lockerKey = 'CASE-26-00012',
+    expectedName = item.name,
+    metadata = evidenceMetadata,
+})
+```
+
+`StoreEvidenceItem` revalidates police access, distance, the searched source, weight/grid capacity, equipped state, and the canonical evidence destination before moving anything. Equipped weapons are disarmed when fully seized. Backpack evidence keeps its real container reference and contents.
+
+Evidence metadata can include `avidEvidence.lockerKey`, which the police integration uses to prevent an evidence item from being accidentally filed into a different case locker.
+
+Existing police-group security remains enforced when opening `policeevidence` inventories.
 
 ## Prison property
 
