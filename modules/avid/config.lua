@@ -25,7 +25,7 @@ return {
             glovebox = 5,
             trunk = 8,
             stash = 8,
-            policeevidence = 8,
+            policeevidence = 10,
             container = 7,
             dumpster = 6,
             temp = 8,
