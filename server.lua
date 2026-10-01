@@ -13,6 +13,8 @@ local TriggerEventHooks = require 'modules.hooks.server'
 local db = require 'modules.mysql.server'
 local Items = require 'modules.items.server'
 local Inventory = require 'modules.inventory.server'
+require 'modules.avid.server'(Inventory)
+require 'modules.avid.institutional'(Inventory)
 local Utils = require 'modules.utils.server'
 
 ---@param player table
@@ -51,7 +53,7 @@ function server.setPlayerInventory(player, data)
 
                     inventory[v.slot] = { name = item.name, label = item.label, weight = weight, slot = v.slot, count = v
                     .count, description = item.description, metadata = v.metadata, stack = item.stack, close = item
-                    .close }
+                    .close, avid = v.avid }
                 end
             end
         end

@@ -64,6 +64,15 @@ const InventoryContext: React.FC = () => {
       case 'custom':
         fetchNui('useButton', { id: (data?.id || 0) + 1, slot: item.slot });
         break;
+      case 'evidence':
+        fetchNui('avid:evidence', {
+          target: contextMenu.inventoryId,
+          slot: item.slot,
+          count: item.count,
+          item: item.name,
+          label: item.metadata?.label || Items[item.name]?.label || item.name,
+        });
+        break;
     }
   };
 
@@ -92,10 +101,16 @@ const InventoryContext: React.FC = () => {
   return (
     <>
       <Menu>
-        <MenuItem onClick={() => handleClick({ action: 'use' })} label={Locale.ui_use || 'Use'} />
-        <MenuItem onClick={() => handleClick({ action: 'give' })} label={Locale.ui_give || 'Give'} />
-        <MenuItem onClick={() => handleClick({ action: 'drop' })} label={Locale.ui_drop || 'Drop'} />
-        {item && item.metadata?.ammo > 0 && (
+        {contextMenu.inventoryType === 'otherplayer' ? (
+          <MenuItem onClick={() => handleClick({ action: 'evidence' })} label="Add to Evidence Locker" />
+        ) : (
+          <>
+            <MenuItem onClick={() => handleClick({ action: 'use' })} label={Locale.ui_use || 'Use'} />
+            <MenuItem onClick={() => handleClick({ action: 'give' })} label={Locale.ui_give || 'Give'} />
+            <MenuItem onClick={() => handleClick({ action: 'drop' })} label={Locale.ui_drop || 'Drop'} />
+          </>
+        )}
+        {contextMenu.inventoryType !== 'otherplayer' && item && item.metadata?.ammo > 0 && (
           <MenuItem onClick={() => handleClick({ action: 'removeAmmo' })} label={Locale.ui_remove_ammo} />
         )}
         {item && item.metadata?.serial && (
@@ -104,7 +119,7 @@ const InventoryContext: React.FC = () => {
             label={Locale.ui_copy}
           />
         )}
-        {item && item.metadata?.components && item.metadata?.components.length > 0 && (
+        {contextMenu.inventoryType !== 'otherplayer' && item && item.metadata?.components && item.metadata?.components.length > 0 && (
           <Menu label={Locale.ui_removeattachments}>
             {item &&
               item.metadata?.components.map((component: string, index: number) => (
@@ -116,7 +131,7 @@ const InventoryContext: React.FC = () => {
               ))}
           </Menu>
         )}
-        {((item && item.name && Items[item.name]?.buttons?.length) || 0) > 0 && (
+        {contextMenu.inventoryType !== 'otherplayer' && ((item && item.name && Items[item.name]?.buttons?.length) || 0) > 0 && (
           <>
             {item &&
               item.name &&
