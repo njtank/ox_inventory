@@ -67,15 +67,14 @@ RegisterNUICallback('avid:move', function(data, cb)
 end)
 
 RegisterNUICallback('avid:evidence', function(data, cb)
-    cb({ success = true })
-
     if GetResourceState('avid_police') ~= 'started' then
-        return lib.notify({
-            type = 'error',
-            description = 'Avid Police is unavailable, so this item cannot be logged as evidence.',
+        return cb({
+            success = false,
+            error = 'avid_police_unavailable',
         })
     end
 
+    cb({ success = true })
     TriggerEvent('avid_police:client:evidenceContext', data)
 end)
 
