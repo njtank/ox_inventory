@@ -1,4 +1,5 @@
-local Config = require 'modules.avid.shops.config'
+local AvidConfig = require 'modules.avid.config'
+local Config = AvidConfig.shops
 
 local zones = {}
 local clerks = {}
