@@ -176,6 +176,24 @@ return {
 		}
 	},
 
+	['beer'] = {
+		label = 'Beer',
+		weight = 500,
+		stack = true,
+		close = true,
+		consume = 1,
+		description = 'A cold bottle of beer.',
+		client = {
+			image = 'sprunk.png',
+			status = { thirst = 100000 },
+			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
+			prop = { model = `prop_amb_beer_bottle`, pos = vec3(0.01, 0.01, -0.02), rot = vec3(0.0, 0.0, -1.5) },
+			usetime = 3500,
+			cancel = true,
+			notification = 'You drank a cold beer'
+		}
+	},
+
 	['cigarettes'] = {
 		label = 'Cigarettes',
 		weight = 200,
