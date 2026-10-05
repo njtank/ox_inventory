@@ -282,6 +282,26 @@ function Spatial.CanFitRecords(inv, name, count)
     return true
 end
 
+function Spatial.CanFitItems(inv, names)
+    if type(names) ~= 'table' or #names == 0 then return true end
+
+    local layout = Spatial.GetLayout(inv)
+    if not layout then return true end
+
+    Spatial.Normalize(inv)
+    local occupied = occupancy(inv, layout)
+
+    for i = 1, #names do
+        local name = names[i]
+        local placement = firstFit(layout, occupied, name)
+
+        if not placement then return false end
+        occupy(occupied, name, placement)
+    end
+
+    return true
+end
+
 function Spatial.CanReplace(inv, name, outgoingSlot)
     local layout = Spatial.GetLayout(inv)
     if not layout then return true end
