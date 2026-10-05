@@ -34,7 +34,7 @@ return function(Inventory)
                 items[#items + 1] = {
                     slot = tonumber(slot),
                     name = item.name,
-                    label = item.metadata and item.metadata.label or item.label or item.name,
+                    label = item.metadata and (item.metadata.avidBagName or item.metadata.label) or item.label or item.name,
                     count = item.count or 1,
                     weight = item.weight or 0,
                     metadata = item.metadata or {},
@@ -71,7 +71,7 @@ return function(Inventory)
                 result[equipmentSlot] = {
                     slot = tonumber(slot),
                     name = item.name,
-                    label = item.metadata and item.metadata.label or item.label or item.name,
+                    label = item.metadata and (item.metadata.avidBagName or item.metadata.label) or item.label or item.name,
                     count = item.count,
                     weight = item.weight,
                     metadata = item.metadata or {},
@@ -101,7 +101,17 @@ return function(Inventory)
             local size = sourceItem.metadata.size
             if not size then return end
 
-            container = Inventory.Create(containerId, sourceItem.label, 'container', size[1], 0, size[2], false)
+            container = Inventory.Create(
+                containerId,
+                sourceItem.metadata.avidBagName or sourceItem.label,
+                'container',
+                size[1],
+                0,
+                size[2],
+                false
+            )
+        else
+            container.label = sourceItem.metadata.avidBagName or sourceItem.label
         end
 
         return container
@@ -696,6 +706,292 @@ return function(Inventory)
 
         sync(inv, slot)
         sync(inv, newSlot)
+
+        return { success = true, state = state(source) }
+    end)
+
+    lib.callback.register('ox_inventory:avid:renameBackpack', function(source, data)
+        if type(data) ~= 'table' then return { success = false, error = 'invalid_payload' } end
+
+        local inv = Inventory(source)
+        if not inv then return { success = false, error = 'invalid_inventory' } end
+
+        local slot = tonumber(data.slot)
+        local item = slot and inv.items[slot]
+
+        if not item or not item.name or not item.name:find('^backpack_') then
+            return { success = false, error = 'not_a_backpack' }
+        end
+
+        local name = tostring(data.name or '')
+        name = name:gsub('[%c<>~^]', ''):gsub('^%s+', ''):gsub('%s+        if type(data) ~= 'table' then return { success = false, error = 'invalid_payload' } end
+
+        local player = Inventory(source)
+        local target = player and searchedInventory(player)
+
+        if not player or not target then
+            return { success = false, error = 'search_target_missing' }
+        end
+
+        local searchOk, searchError = validateSearchSession(source, player, target)
+        if not searchOk then return { success = false, error = searchError } end
+
+        local equipmentSlot = tostring(data.equipmentSlot or '')
+        local targetEquipment = equipped(target)
+        local equippedItem = targetEquipment[equipmentSlot]
+
+        if not equippedItem then return { success = false, error = 'nothing_equipped' } end
+
+        local fromSlot = tonumber(equippedItem.slot)
+        local item = fromSlot and target.items[fromSlot]
+
+        if not item then return { success = false, error = 'item_missing' } end
+
+        if player.maxWeight and player.weight + (item.weight or 0) > player.maxWeight then
+            return { success = false, error = 'inventory_overweight' }
+        end
+
+        local placement = Spatial.FirstFit(player, item.name)
+        if not placement then return { success = false, error = 'no_grid_space' } end
+
+        local targetSlot = Inventory.GetEmptySlot(player)
+        if not targetSlot then return { success = false, error = 'inventory_full' } end
+
+        local hooked, hookError = transferHook(source, target, player, item, targetSlot, item.count, 'move')
+        if not hooked then return { success = false, error = hookError } end
+
+        local count = item.count
+        local metadata = table.clone(item.metadata or {})
+        local wasWeapon = target.weapon == fromSlot
+
+        local removed, removeError = Inventory.RemoveItem(target, item.name, count, metadata, fromSlot, false, true)
+        if not removed then return { success = false, error = removeError or 'remove_failed' } end
+
+        local added, response = Inventory.AddItem(player, item.name, count, metadata, targetSlot)
+
+        if not added then
+            local restored, restoreResponse = Inventory.AddItem(target, item.name, count, metadata, fromSlot)
+
+            if restored then
+                local restoredSlot = type(restoreResponse) == 'table' and restoreResponse.slot or fromSlot
+                Spatial.SetEquipped(target, restoredSlot, equipmentSlot)
+                sync(target, restoredSlot)
+            end
+
+            return { success = false, error = response or 'confiscate_failed' }
+        end
+
+        local newSlot = type(response) == 'table' and response.slot or targetSlot
+        Spatial.SetGrid(player, newSlot, placement.x, placement.y, false)
+
+        if wasWeapon then
+            target.weapon = nil
+            TriggerClientEvent('ox_inventory:disarm', target.id)
+        end
+
+        sync(target, fromSlot)
+        sync(player, newSlot)
+
+        return { success = true, state = state(source) }
+    end)
+
+    lib.callback.register('ox_inventory:avid:quickMove', function(source, data)
+        if type(data) ~= 'table' then return { success = false, error = 'invalid_payload' } end
+
+        local player = Inventory(source)
+        if not player then return { success = false, error = 'invalid_inventory' } end
+
+        local backpack = equippedBackpack(player)
+        local external = externalInventory(player)
+        local searched = searchedInventory(player)
+        local fromName = data.from == 'searchedBackpack' and 'searchedBackpack'
+            or data.from == 'searched' and 'searched'
+            or data.from == 'external' and 'external'
+            or data.from == 'backpack' and 'backpack'
+            or 'pockets'
+        local toName
+
+        if searched then
+            if fromName == 'searched' or fromName == 'searchedBackpack' then
+                toName = 'pockets'
+            elseif fromName == 'pockets' then
+                toName = 'searched'
+            else
+                toName = 'pockets'
+            end
+        elseif external then
+            if fromName == 'external' then
+                toName = 'pockets'
+            elseif fromName == 'pockets' then
+                toName = 'external'
+            else
+                toName = 'pockets'
+            end
+        else
+            toName = fromName == 'pockets' and 'backpack' or 'pockets'
+        end
+
+        local fromInv = resolveInventory(player, fromName)
+        local toInv = resolveInventory(player, toName)
+
+        if not fromInv then return { success = false, error = 'invalid_inventory' } end
+        if not toInv then
+            return {
+                success = false,
+                error = toName == 'backpack' and 'no_backpack_equipped' or 'invalid_inventory'
+            }
+        end
+
+        local searchOk, searchError = validateSearchTransfer(source, player, fromInv, toInv)
+        if not searchOk then return { success = false, error = searchError } end
+
+        local slot = tonumber(data.slot)
+        local item = slot and fromInv.items[slot]
+
+        if not item then return { success = false, error = 'item_missing' } end
+        if item.avid and item.avid.equipped then return { success = false, error = 'unequip_first' } end
+        if toName == 'backpack' and item.name:find('^backpack_') then
+            return { success = false, error = 'nested_backpacks_disabled' }
+        end
+
+        local allowed, restriction = validateContainerTransfer(player, fromInv, toInv, item)
+        if not allowed then return { success = false, error = restriction } end
+
+        if toInv.maxWeight and toInv.weight + (item.weight or 0) > toInv.maxWeight then
+            return { success = false, error = 'inventory_overweight' }
+        end
+
+        local placement = Spatial.FirstFit(toInv, item.name)
+        if not placement then return { success = false, error = 'no_grid_space' } end
+
+        local targetSlot = Inventory.GetEmptySlot(toInv)
+        if not targetSlot then return { success = false, error = 'inventory_full' } end
+
+        local hooked, hookError = transferHook(source, fromInv, toInv, item, targetSlot, item.count, 'move')
+        if not hooked then return { success = false, error = hookError } end
+
+        local count = item.count
+        local metadata = table.clone(item.metadata or {})
+        local oldGrid = item.avid and item.avid.grid and table.clone(item.avid.grid)
+
+        local removed, removeErr = Inventory.RemoveItem(fromInv, item.name, count, metadata, slot, false, true)
+        if not removed then return { success = false, error = removeErr or 'remove_failed' } end
+
+        local added, response = Inventory.AddItem(toInv, item.name, count, metadata, targetSlot)
+
+        if not added then
+            local restored, restoreResponse = Inventory.AddItem(fromInv, item.name, count, metadata, slot)
+
+            if restored and oldGrid then
+                local restoredSlot = type(restoreResponse) == 'table' and restoreResponse.slot or slot
+                Spatial.SetGrid(fromInv, restoredSlot, oldGrid.x, oldGrid.y, false)
+                sync(fromInv, restoredSlot)
+            end
+
+            return { success = false, error = response or 'add_failed' }
+        end
+
+        local newSlot = type(response) == 'table' and response.slot or targetSlot
+        Spatial.SetGrid(toInv, newSlot, placement.x, placement.y, false)
+        sync(fromInv, slot)
+        sync(toInv, newSlot)
+
+        refreshTransferBackpacks(player, fromInv, toInv)
+
+        return { success = true, state = state(source) }
+    end)
+
+    lib.callback.register('ox_inventory:avid:move', function(source, data)
+        if type(data) ~= 'table' then return { success = false, error = 'invalid_payload' } end
+
+        local player = Inventory(source)
+        if not player then return { success = false, error = 'invalid_inventory' } end
+
+        local backpack = equippedBackpack(player)
+        local fromInv = resolveInventory(player, data.from)
+        local toInv = resolveInventory(player, data.to)
+
+        if not fromInv or not toInv or fromInv == toInv then
+            return { success = false, error = 'invalid_inventory' }
+        end
+
+        local searchOk, searchError = validateSearchTransfer(source, player, fromInv, toInv)
+        if not searchOk then return { success = false, error = searchError } end
+
+        local slot = tonumber(data.slot)
+        local item = slot and fromInv.items[slot]
+
+        if not item then return { success = false, error = 'item_missing' } end
+        if item.avid and item.avid.equipped then return { success = false, error = 'unequip_first' } end
+        if data.to == 'backpack' and item.name:find('^backpack_') then
+            return { success = false, error = 'nested_backpacks_disabled' }
+        end
+
+        local allowed, restriction = validateContainerTransfer(player, fromInv, toInv, item)
+        if not allowed then return { success = false, error = restriction } end
+
+        if toInv.maxWeight and toInv.weight + (item.weight or 0) > toInv.maxWeight then
+            return { success = false, error = 'inventory_overweight' }
+        end
+
+        local x, y = tonumber(data.x), tonumber(data.y)
+        local ok, err = Spatial.CanPlace(toInv, item.name, x, y, false)
+        if not ok then return { success = false, error = err } end
+
+        local targetSlot = Inventory.GetEmptySlot(toInv)
+        if not targetSlot then return { success = false, error = 'inventory_full' } end
+
+        local count = math.max(1, math.min(math.floor(tonumber(data.count) or item.count), item.count))
+        local hooked, hookError = transferHook(source, fromInv, toInv, item, targetSlot, count, 'move')
+        if not hooked then return { success = false, error = hookError } end
+
+        local metadata = table.clone(item.metadata or {})
+        local oldGrid = item.avid and item.avid.grid and table.clone(item.avid.grid)
+
+        local removed, removeErr = Inventory.RemoveItem(fromInv, item.name, count, metadata, slot, false, true)
+        if not removed then return { success = false, error = removeErr or 'remove_failed' } end
+
+        local added, response = Inventory.AddItem(toInv, item.name, count, metadata, targetSlot)
+
+        if not added then
+            local restored, restoreResponse = Inventory.AddItem(fromInv, item.name, count, metadata, slot)
+
+            if restored and oldGrid then
+                local restoredSlot = type(restoreResponse) == 'table' and restoreResponse.slot or slot
+                Spatial.SetGrid(fromInv, restoredSlot, oldGrid.x, oldGrid.y, false)
+                sync(fromInv, restoredSlot)
+            end
+
+            return { success = false, error = response or 'add_failed' }
+        end
+
+        local newSlot = type(response) == 'table' and response.slot or targetSlot
+        Spatial.SetGrid(toInv, newSlot, x, y, false)
+        sync(fromInv, slot)
+        sync(toInv, newSlot)
+
+        refreshTransferBackpacks(player, fromInv, toInv)
+
+        return { success = true, state = state(source) }
+    end)
+
+    exports('AvidGetState', state)
+end
+, '')
+        name = name:sub(1, 32)
+
+        item.metadata = item.metadata or {}
+        item.metadata.avidBagName = name ~= '' and name or nil
+        inv.changed = true
+
+        local containerId = item.metadata.container
+        local container = containerId and Inventory(containerId)
+
+        if container then
+            container.label = item.metadata.avidBagName or item.label
+        end
+
+        sync(inv, slot)
 
         return { success = true, state = state(source) }
     end)
