@@ -434,7 +434,8 @@ const ContextMenu: React.FC<{
   onUnequip: () => void;
   onConfiscate: () => void;
   onEvidence: () => void;
-}> = ({ context, onClose, onUse, onGive, onDrop, onQuickMove, onSplit, onEquip, onUnequip, onConfiscate, onEvidence }) => {
+  onRenameBackpack: () => void;
+}> = ({ context, onClose, onUse, onGive, onDrop, onQuickMove, onSplit, onEquip, onUnequip, onConfiscate, onEvidence, onRenameBackpack }) => {
   const maxSplit = context ? Math.max(1, context.item.count - 1) : 1;
   const [splitAmount, setSplitAmount] = useState(1);
 
@@ -472,7 +473,12 @@ const ContextMenu: React.FC<{
         </div>
 
         {context.kind === 'equipment' ? (
-          <button onClick={onUnequip}>Return to pockets</button>
+          <>
+            <button onClick={onUnequip}>Return to pockets</button>
+            {context.item.name.startsWith('backpack_') && (
+              <button onClick={onRenameBackpack}>Rename Backpack</button>
+            )}
+          </>
         ) : context.kind === 'searchedEquipment' ? (
           <>
             <button className="is-confiscate" onClick={onConfiscate}>Confiscate Equipped Item</button>
@@ -483,6 +489,10 @@ const ContextMenu: React.FC<{
             <button onClick={onUse} disabled={context.kind !== 'pockets'}>Use</button>
             <button onClick={onGive} disabled={context.kind !== 'pockets'}>Give</button>
             <button onClick={onQuickMove}>Quick Move</button>
+
+            {context.kind === 'pockets' && context.item.name.startsWith('backpack_') && (
+              <button onClick={onRenameBackpack}>Rename Backpack</button>
+            )}
 
             {(context.kind === 'searched' || context.kind === 'searchedBackpack') && (
               <button className="is-evidence" onClick={onEvidence}>Add to Evidence</button>
@@ -746,6 +756,24 @@ const AvidInventory: React.FC = () => {
 
     setContext(null);
   }, [context, state?.searched, show]);
+
+  const renameBackpack = useCallback(async () => {
+    if (!context || !context.item.name.startsWith('backpack_')) return;
+    if (context.kind !== 'pockets' && context.kind !== 'equipment') return;
+
+    const result = await fetchNui<ActionResponse>('avid:renameBackpack', {
+      slot: context.item.slot,
+      currentName: context.item.metadata?.avidBagName || '',
+    });
+
+    if (!result?.success) {
+      if (result?.error !== 'cancelled') show(result?.error || 'Unable to rename backpack');
+      return;
+    }
+
+    if (result.state) setState(result.state); else void refresh();
+    setContext(null);
+  }, [context, refresh, show]);
 
   const confiscateEquipped = useCallback(async (equipmentSlot: string) => {
     const result = await fetchNui<ActionResponse>('avid:confiscateEquipped', { equipmentSlot });
@@ -1191,6 +1219,9 @@ const AvidInventory: React.FC = () => {
           }}
           onEvidence={() => {
             void addToEvidence();
+          }}
+          onRenameBackpack={() => {
+            void renameBackpack();
           }}
         />
 
