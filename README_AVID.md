@@ -164,3 +164,57 @@ exports.ox_inventory:ReturnPrisonProperty(source)
 `HasPrisonProperty(source)` is also available server-side, with a client helper of the same name for UI/status checks.
 
 On successful return, any prison-only items still carried are cleared first and the pre-sentence snapshot is restored. The restored inventory keeps its previous Avid layout and equipment assignments.
+
+
+## Simple physical shops
+
+Avid's convenience-store retail flow now lives directly inside ox_inventory. The old `avid_logistics` resource is no longer required for these stores.
+
+Current mapped stores:
+
+- Strawberry 24/7
+- David LTD
+- Little Seoul LTD
+- Downtown Vinewood 24/7
+
+The flow is intentionally simple:
+
+```text
+Target shelf -> Take item -> item enters basket -> target clerk -> Checkout -> Cash or Card -> items enter spatial inventory
+```
+
+The basket is temporary and server-authoritative. Checkout validates:
+
+- the player is at the correct clerk
+- cash or bank balance
+- inventory weight
+- physical spatial grid room
+- configured item validity
+
+The shop targets prefer `avid_target` and retain ox_target-compatible fallbacks.
+
+Remove/disable the old resource after updating:
+
+```cfg
+# remove:
+ensure avid_logistics
+
+# ox_inventory now owns the physical convenience shops
+ensure ox_inventory
+```
+
+There is intentionally no stock economy, delivery simulation, store ownership, shipment system, or clerk combat logic in this implementation.
+
+## Renamable backpacks
+
+Any player currently carrying a backpack can right-click it and choose **Rename Backpack**.
+
+The custom name is stored in:
+
+```lua
+metadata.avidBagName
+```
+
+It is not ownership-bound. Giving, dropping, storing, or transferring the backpack preserves the custom name and its persistent container. A future holder can rename it again.
+
+Leaving the rename field blank restores the normal backpack name. Equipped backpacks also propagate the custom name to the Portable Storage panel.
