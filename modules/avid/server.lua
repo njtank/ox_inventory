@@ -724,7 +724,27 @@ return function(Inventory)
         end
 
         local name = tostring(data.name or '')
-        name = name:gsub('[%c<>~^]', ''):gsub('^%s+', ''):gsub('%s+        if type(data) ~= 'table' then return { success = false, error = 'invalid_payload' } end
+        name = name:gsub('[%c<>~^]', ''):gsub('^%s+', ''):gsub('%s+$', '')
+        name = name:sub(1, 32)
+
+        item.metadata = item.metadata or {}
+        item.metadata.avidBagName = name ~= '' and name or nil
+        inv.changed = true
+
+        local containerId = item.metadata.container
+        local container = containerId and Inventory(containerId)
+
+        if container then
+            container.label = item.metadata.avidBagName or item.label
+        end
+
+        sync(inv, slot)
+
+        return { success = true, state = state(source) }
+    end)
+
+    lib.callback.register('ox_inventory:avid:confiscateEquipped', function(source, data)
+        if type(data) ~= 'table' then return { success = false, error = 'invalid_payload' } end
 
         local player = Inventory(source)
         local target = player and searchedInventory(player)
