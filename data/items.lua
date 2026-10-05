@@ -351,4 +351,516 @@ return {
 		label = 'Scrap Metal',
 		weight = 80,
 	},
+
+	['advancedlockpick'] = {
+		label = 'Advanced Lockpick',
+		weight = 160,
+		stack = true,
+		close = true,
+		client = {
+			event = 'lockpicks:UseLockpick',
+			args = true,
+		},
+	},
+
+	-- TRAILHEAD ------------------------------------------------------------------
+
+	['trail_rod_basic'] = {
+		label = 'Starter Rod & Reel',
+		weight = 1800,
+		stack = false,
+		close = true,
+		consume = 0,
+		client = { export = 'avid-trailhead.useFishingRod' }
+	},
+
+	['trail_rod_freshwater'] = {
+		label = 'Freshwater Rod & Reel',
+		weight = 1650,
+		stack = false,
+		close = true,
+		consume = 0,
+		client = { export = 'avid-trailhead.useFishingRod' }
+	},
+
+	['trail_rod_surf'] = {
+		label = 'Surf Rod & Reel',
+		weight = 2200,
+		stack = false,
+		close = true,
+		consume = 0,
+		client = { export = 'avid-trailhead.useFishingRod' }
+	},
+
+	['trail_bait_worms'] = {
+		label = 'Worm Bait',
+		weight = 45,
+		stack = true,
+		close = true,
+	},
+
+	['trail_bait_shrimp'] = {
+		label = 'Shrimp Bait',
+		weight = 55,
+		stack = true,
+		close = true,
+	},
+
+	['trail_lure_spinner'] = {
+		label = 'Spinner Lure',
+		weight = 25,
+		stack = true,
+		close = true,
+	},
+
+	['trail_tackle_box'] = {
+		label = 'Tackle Box',
+		weight = 850,
+		stack = false,
+	},
+
+	['trail_fish'] = {
+		label = 'Fresh Catch',
+		weight = 900,
+		stack = false,
+		close = false,
+		consume = 0,
+	},
+
+	['trail_binoculars'] = {
+		label = 'Trail Binoculars',
+		weight = 620,
+		stack = false,
+		close = true,
+		consume = 0,
+		client = { export = 'avid-trailhead.useBinoculars' }
+	},
+
+	['trail_field_knife'] = {
+		label = 'Field Knife',
+		weight = 350,
+		stack = false,
+		close = true,
+		consume = 0,
+	},
+
+	['trail_animal_call'] = {
+		label = 'Game Call',
+		weight = 120,
+		stack = false,
+		close = true,
+		consume = 0,
+		client = { export = 'avid-trailhead.useAnimalCall' }
+	},
+
+	['trail_hunting_pack'] = {
+		label = 'Hunting Pack',
+		weight = 900,
+		stack = false,
+	},
+
+	['trail_game_meat'] = {
+		label = 'Game Meat',
+		weight = 650,
+		stack = true,
+		close = false,
+	},
+
+	['trail_game_hide'] = {
+		label = 'Game Hide',
+		weight = 1200,
+		stack = false,
+		close = false,
+	},
+
+	['trail_hunting_trophy'] = {
+		label = 'Hunting Trophy',
+		weight = 800,
+		stack = false,
+		close = false,
+	},
+
+	['trail_metal_detector'] = {
+		label = 'Metal Detector',
+		weight = 1500,
+		stack = false,
+		close = true,
+		consume = 0,
+		client = { export = 'avid-trailhead.useMetalDetector' }
+	},
+
+	['trail_sand_scoop'] = {
+		label = 'Sand Scoop',
+		weight = 700,
+		stack = false,
+		close = true,
+		consume = 0,
+	},
+
+	['trail_detector_battery'] = {
+		label = 'Detector Battery',
+		weight = 180,
+		stack = true,
+		close = true,
+	},
+
+	['trail_detector_find'] = {
+		label = 'Detector Find',
+		weight = 120,
+		stack = false,
+		close = false,
+		consume = 0,
+	},
+
+	['trail_tent'] = {
+		label = 'Two-Person Tent',
+		weight = 4200,
+		stack = false,
+		close = true,
+		consume = 0,
+		client = { export = 'avid-trailhead.useCampGear' }
+	},
+
+	['trail_sleeping_bag'] = {
+		label = 'Sleeping Bag',
+		weight = 2100,
+		stack = false,
+		close = true,
+		consume = 0,
+		client = { export = 'avid-trailhead.useCampGear' }
+	},
+
+	['trail_camp_chair'] = {
+		label = 'Camp Chair',
+		weight = 2300,
+		stack = false,
+		close = true,
+		consume = 0,
+		client = { export = 'avid-trailhead.useCampGear' }
+	},
+
+	['trail_camp_lantern'] = {
+		label = 'Camp Lantern',
+		weight = 650,
+		stack = false,
+		close = true,
+		consume = 0,
+		client = { export = 'avid-trailhead.useCampGear' }
+	},
+
+	['trail_cooler'] = {
+		label = 'Trail Cooler',
+		weight = 2600,
+		stack = false,
+		close = true,
+		consume = 0,
+		client = { export = 'avid-trailhead.useCampGear' }
+	},
+
+	['trail_campfire_kit'] = {
+		label = 'Campfire Kit',
+		weight = 1100,
+		stack = true,
+		close = true,
+		consume = 0,
+		client = { export = 'avid-trailhead.useCampGear' }
+	},
+
+	['trail_compass'] = {
+		label = 'Trail Compass',
+		weight = 120,
+		stack = false,
+	},
+
+	['trail_flashlight'] = {
+		label = 'Outdoor Flashlight',
+		weight = 260,
+		stack = false,
+	},
+
+	['trail_hiking_pack'] = {
+		label = 'Hiking Pack',
+		weight = 850,
+		stack = false,
+	},
+
+	-- POLICE / TOOLS -------------------------------------------------------------
+
+	['police_tablet'] = {
+		label = 'Police MDT',
+		weight = 650,
+		stack = false,
+		close = true,
+		consume = 0,
+		description = 'Department-issued secure records tablet.',
+		client = {
+			export = 'avid_mdt.usePoliceTablet'
+		}
+	},
+
+	['small_prybar'] = {
+		label = 'Small Pry Bar',
+		weight = 850,
+		stack = false,
+		close = true,
+		consume = 0,
+		description = 'A compact pry tool. Small enough to hide, sturdy enough to get you in trouble.'
+	},
+
+	['wire_cutters'] = {
+		label = 'Wire Cutters',
+		weight = 650,
+		stack = false,
+		close = true,
+		consume = 0,
+		description = 'Insulated cutters suitable for wire and small-gauge cable.'
+	},
+
+	-- COMMON MATERIALS ------------------------------------------------------------
+
+	['glass'] = {
+		label = 'Glass',
+		weight = 100,
+		stack = true,
+		close = false,
+		description = 'Recovered glass that can be reused or processed.'
+	},
+
+	['plastic'] = {
+		label = 'Plastic',
+		weight = 100,
+		stack = true,
+		close = false,
+		description = 'Assorted recyclable plastic.'
+	},
+
+	['rubber'] = {
+		label = 'Rubber',
+		weight = 120,
+		stack = true,
+		close = false,
+		description = 'Recovered rubber material.'
+	},
+
+	['copper'] = {
+		label = 'Copper',
+		weight = 180,
+		stack = true,
+		close = false,
+		description = 'Copper wire and scrap with resale and crafting value.'
+	},
+
+	['dirty_cloth'] = {
+		label = 'Cloth',
+		weight = 80,
+		stack = true,
+		close = true,
+		description = 'A worn piece of cloth that can still be cleaned and reused.'
+	},
+
+	['electronics'] = {
+		label = 'Electronics',
+		weight = 120,
+		stack = true,
+		close = true,
+		description = 'Assorted small electronic components and circuitry.'
+	},
+
+	['metalscrap'] = {
+		label = 'Metal Scrap',
+		weight = 200,
+		stack = true,
+		close = false,
+		description = 'Mixed pieces of scrap metal.'
+	},
+
+	['leather'] = {
+		label = 'Leather',
+		weight = 150,
+		stack = true,
+		close = false,
+		description = 'Recovered leather material.'
+	},
+
+	['steel'] = {
+		label = 'Steel',
+		weight = 200,
+		stack = true,
+		close = false,
+		description = 'Recovered steel material.'
+	},
+
+	-- STOLEN GOODS ----------------------------------------------------------------
+
+	['stolen_package'] = {
+		label = 'Stolen Package',
+		weight = 1000,
+		stack = false,
+		close = true,
+		consume = 0,
+		description = 'A delivery that definitely was not addressed to you.'
+	},
+
+	['stolen_phone'] = {
+		label = 'Stolen Phone',
+		weight = 220,
+		stack = true,
+		close = true,
+		description = 'A locked phone with no honest explanation for how you got it.'
+	},
+
+	['stolen_wallet'] = {
+		label = 'Stolen Wallet',
+		weight = 100,
+		stack = true,
+		close = true,
+		description = 'A wallet with somebody else’s life stuffed inside.'
+	},
+
+	['stolen_earbuds'] = {
+		label = 'Stolen Earbuds',
+		weight = 80,
+		stack = true,
+		close = true,
+		description = 'Used wireless earbuds with questionable provenance.'
+	},
+
+	['stolen_watch'] = {
+		label = 'Stolen Watch',
+		weight = 120,
+		stack = true,
+		close = true,
+		description = 'A watch that probably has an owner looking for it.'
+	},
+
+	['stolen_camera'] = {
+		label = 'Stolen Camera',
+		weight = 850,
+		stack = true,
+		close = true,
+		description = 'A consumer camera snatched from an unattended vehicle.'
+	},
+
+	['stolen_tablet'] = {
+		label = 'Stolen Tablet',
+		weight = 650,
+		stack = true,
+		close = true,
+		description = 'A consumer tablet with a lock screen you cannot explain.'
+	},
+
+	['stolen_laptop'] = {
+		label = 'Stolen Laptop',
+		weight = 1900,
+		stack = true,
+		close = true,
+		description = 'A laptop liberated from the interior of a vehicle.'
+	},
+
+	['stolen_power_tool'] = {
+		label = 'Stolen Power Tool',
+		weight = 1800,
+		stack = true,
+		close = true,
+		description = 'A jobsite power tool with somebody else’s initials on it.'
+	},
+
+	['stolen_toolbox'] = {
+		label = 'Stolen Toolbox',
+		weight = 3200,
+		stack = false,
+		close = true,
+		description = 'A heavy toolbox taken from a worksite.'
+	},
+
+	['stolen_goods'] = {
+		label = 'Stolen Property',
+		weight = 250,
+		stack = false,
+		close = false,
+		description = 'Property that probably has an owner looking for it.'
+	},
+
+	-- HOUSING / CRAFTING ----------------------------------------------------------
+
+	['utility_bench_kit'] = {
+		label = 'Workbench Kit',
+		weight = 12500,
+		stack = false,
+		close = true,
+		consume = 0,
+		description = 'A boxed workbench ready to assemble inside an apartment or property.',
+		client = {
+			export = 'qbx_properties.placeUtilityBench',
+		},
+	},
+
+	['avid_machined_parts'] = {
+		label = 'Machined Parts',
+		weight = 180,
+		stack = true,
+		close = true,
+		description = 'Precision workshop components used in advanced fabrication.',
+	},
+
+	['avid_polymer_parts'] = {
+		label = 'Polymer Components',
+		weight = 100,
+		stack = true,
+		close = true,
+		description = 'Molded workshop components used in advanced fabrication.',
+	},
+
+	['avid_precision_spring'] = {
+		label = 'Precision Spring Set',
+		weight = 80,
+		stack = true,
+		close = true,
+		description = 'A tuned mechanical component set used by advanced workshop recipes.',
+	},
+
+	['blueprint_sns_pistol'] = {
+		label = 'SNS Pistol Schematic',
+		weight = 25,
+		stack = false,
+		close = true,
+		description = 'A reusable schematic required to assemble an SNS Pistol at a Weapons Workbench.',
+	},
+
+	['blueprint_pistol'] = {
+		label = 'Pistol Schematic',
+		weight = 25,
+		stack = false,
+		close = true,
+		description = 'A reusable schematic required to assemble a Pistol at a Weapons Workbench.',
+	},
+
+	['blueprint_vintage_pistol'] = {
+		label = 'Vintage Pistol Schematic',
+		weight = 25,
+		stack = false,
+		close = true,
+		description = 'A reusable schematic required to assemble a Vintage Pistol at a Weapons Workbench.',
+	},
+
+	['blueprint_machine_pistol'] = {
+		label = 'Machine Pistol Schematic',
+		weight = 25,
+		stack = false,
+		close = true,
+		description = 'A reusable schematic required to assemble a Machine Pistol at a Weapons Workbench.',
+	},
+
+	['burglary_document'] = {
+		label = 'Stolen Documents',
+		weight = 50,
+		stack = false,
+		close = true,
+		consume = 0,
+		description = 'Paperwork that may contain useful information.',
+		client = {
+			export = 'avid_underworld.useBurglaryDocument'
+		},
+	},
+
 }
