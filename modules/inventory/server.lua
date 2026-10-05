@@ -294,9 +294,12 @@ function Inventory.GetContainerFromSlot(inv, slotId)
 	if not slotData then return end
 
 	local container = Inventory(slotData.metadata.container)
+	local label = slotData.metadata.avidBagName or slotData.label
 
 	if not container then
-		container = Inventory.Create(slotData.metadata.container, slotData.label, 'container', slotData.metadata.size[1], 0, slotData.metadata.size[2], false)
+		container = Inventory.Create(slotData.metadata.container, label, 'container', slotData.metadata.size[1], 0, slotData.metadata.size[2], false)
+	else
+		container.label = label
 	end
 
 	return container
