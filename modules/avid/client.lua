@@ -54,6 +54,28 @@ RegisterNUICallback('avid:splitStack', function(data, cb)
     respond(cb, lib.callback.await('ox_inventory:avid:splitStack', false, data))
 end)
 
+RegisterNUICallback('avid:renameBackpack', function(data, cb)
+    local result = lib.inputDialog('Rename Backpack', {
+        {
+            type = 'input',
+            label = 'Backpack name',
+            description = 'Leave blank to restore the normal backpack name.',
+            default = data.currentName or '',
+            max = 32,
+            required = false,
+        }
+    })
+
+    if not result then
+        return cb({ success = false, error = 'cancelled' })
+    end
+
+    respond(cb, lib.callback.await('ox_inventory:avid:renameBackpack', false, {
+        slot = data.slot,
+        name = result[1] or '',
+    }))
+end)
+
 RegisterNUICallback('avid:confiscateEquipped', function(data, cb)
     respond(cb, lib.callback.await('ox_inventory:avid:confiscateEquipped', false, data))
 end)
