@@ -15,6 +15,7 @@ local Items = require 'modules.items.server'
 local Inventory = require 'modules.inventory.server'
 require 'modules.avid.server'(Inventory)
 require 'modules.avid.institutional'(Inventory)
+require 'modules.avid.shops.server'(Inventory)
 local Utils = require 'modules.utils.server'
 
 ---@param player table
