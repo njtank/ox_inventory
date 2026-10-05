@@ -44,6 +44,5 @@ files {
     'modules/**/client.lua',
     'modules/bridge/**/client.lua',
     'modules/avid/config.lua',
-    'modules/avid/shops/config.lua',
     'data/*.lua',
 }
