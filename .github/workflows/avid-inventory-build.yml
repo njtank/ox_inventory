@@ -8,6 +8,12 @@ on:
       - 'web/src/**'
       - 'web/package.json'
       - 'web/bun.lock'
+      - 'modules/**'
+      - 'data/**'
+      - 'client.lua'
+      - 'server.lua'
+      - 'fxmanifest.lua'
+      - 'init.lua'
       - '.github/workflows/avid-inventory-build.yml'
   workflow_dispatch:
 
