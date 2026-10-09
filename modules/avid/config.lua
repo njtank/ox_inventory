@@ -136,13 +136,24 @@ return {
                         },
                     },
                     shelves = {
-                        candies = {
-                            label = 'Candies',
+                        snacks = {
+                            label = 'Snacks',
                             coords = vec3(26.256, -1346.933, 29.247),
                             size = vec3(0.72, 0.62, 0.72),
                             rotation = 0.0,
                             items = {
-                                { name = 'chocolate_bar', label = 'Candy Bar', price = 4 },
+                                { name = 'apple_juice', label = 'Apple Juice', price = 4 },
+                                { name = 'ecola', label = 'eCola', price = 4 },
+                                { name = 'ecola_light', label = 'eCola Light', price = 4 },
+                                { name = 'junk_drink', label = 'Junk Energy Drink', price = 5 },
+                                { name = 'orangotang', label = 'Orang-O-Tang', price = 5 },
+                                { name = 'raine', label = 'Raine', price = 4 },
+                                { name = 'sprunk', label = 'Sprunk', price = 4 },
+                                { name = 'sprunk_light', label = 'Sprunk Light', price = 4 },
+                                { name = 'slickers', label = 'Slickers', price = 4 },
+                                { name = 'twerks', label = 'Twerks', price = 4 },
+                                { name = 'phat_chips', label = 'Phat Chips', price = 5 },
+                                { name = 'egochaser_bar', label = 'EgoChaser Energy Bar', price = 6 },
                             },
                         },
                         food = {
@@ -151,7 +162,9 @@ return {
                             size = vec3(1.05, 0.70, 0.72),
                             rotation = 0.0,
                             items = {
-                                { name = 'sandwich', label = 'Deli Sandwich', price = 7 },
+                                { name = 'noodle_cup', label = 'Noodle Cup', price = 8 },
+                                { name = 'veggie_wrap', label = 'Veggie Wrap', price = 9 },
+                                { name = 'hotdog_plain', label = 'Hotdog', price = 7 },
                             },
                         },
                         drinks = {
@@ -160,7 +173,14 @@ return {
                             size = vec3(1.25, 0.78, 0.78),
                             rotation = 0.0,
                             items = {
-                                { name = 'water', label = 'Water', price = 3 },
+                                { name = 'apple_juice', label = 'Apple Juice', price = 4 },
+                                { name = 'ecola', label = 'eCola', price = 4 },
+                                { name = 'ecola_light', label = 'eCola Light', price = 4 },
+                                { name = 'junk_drink', label = 'Junk Energy Drink', price = 5 },
+                                { name = 'orangotang', label = 'Orang-O-Tang', price = 5 },
+                                { name = 'raine', label = 'Raine', price = 4 },
+                                { name = 'sprunk', label = 'Sprunk', price = 4 },
+                                { name = 'sprunk_light', label = 'Sprunk Light', price = 4 },
                             },
                         },
                         cigarettes = {
@@ -169,7 +189,9 @@ return {
                             size = vec3(0.92, 0.58, 0.68),
                             rotation = 0.0,
                             items = {
-                                { name = 'cigarettes', label = 'Cigarettes', price = 18 },
+                                { name = 'redwood_cigarettes', label = 'Redwood Cigarettes', price = 20 },
+                                { name = 'cigs_69', label = '69 Brand Cigarettes', price = 18 },
+                                { name = 'homies_cigars', label = 'Homies Cigars', price = 28 },
                             },
                         },
                     },
@@ -187,13 +209,24 @@ return {
                         },
                     },
                     shelves = {
-                        candies = {
-                            label = 'Candies',
+                        snacks = {
+                            label = 'Snacks',
                             coords = vec3(-47.481, -1757.438, 29.070),
                             size = vec3(0.82, 0.72, 0.82),
                             rotation = 0.0,
                             items = {
-                                { name = 'chocolate_bar', label = 'Candy Bar', price = 4 },
+                                { name = 'apple_juice', label = 'Apple Juice', price = 4 },
+                                { name = 'ecola', label = 'eCola', price = 4 },
+                                { name = 'ecola_light', label = 'eCola Light', price = 4 },
+                                { name = 'junk_drink', label = 'Junk Energy Drink', price = 5 },
+                                { name = 'orangotang', label = 'Orang-O-Tang', price = 5 },
+                                { name = 'raine', label = 'Raine', price = 4 },
+                                { name = 'sprunk', label = 'Sprunk', price = 4 },
+                                { name = 'sprunk_light', label = 'Sprunk Light', price = 4 },
+                                { name = 'slickers', label = 'Slickers', price = 4 },
+                                { name = 'twerks', label = 'Twerks', price = 4 },
+                                { name = 'phat_chips', label = 'Phat Chips', price = 5 },
+                                { name = 'egochaser_bar', label = 'EgoChaser Energy Bar', price = 6 },
                             },
                         },
                         food = {
@@ -202,7 +235,9 @@ return {
                             size = vec3(1.05, 0.76, 0.82),
                             rotation = 0.0,
                             items = {
-                                { name = 'sandwich', label = 'Deli Sandwich', price = 7 },
+                                { name = 'noodle_cup', label = 'Noodle Cup', price = 8 },
+                                { name = 'veggie_wrap', label = 'Veggie Wrap', price = 9 },
+                                { name = 'hotdog_plain', label = 'Hotdog', price = 7 },
                             },
                         },
                         drinks = {
@@ -211,7 +246,14 @@ return {
                             size = vec3(1.20, 0.82, 0.88),
                             rotation = 0.0,
                             items = {
-                                { name = 'water', label = 'Water', price = 3 },
+                                { name = 'apple_juice', label = 'Apple Juice', price = 4 },
+                                { name = 'ecola', label = 'eCola', price = 4 },
+                                { name = 'ecola_light', label = 'eCola Light', price = 4 },
+                                { name = 'junk_drink', label = 'Junk Energy Drink', price = 5 },
+                                { name = 'orangotang', label = 'Orang-O-Tang', price = 5 },
+                                { name = 'raine', label = 'Raine', price = 4 },
+                                { name = 'sprunk', label = 'Sprunk', price = 4 },
+                                { name = 'sprunk_light', label = 'Sprunk Light', price = 4 },
                             },
                         },
                         beer = {
@@ -220,7 +262,10 @@ return {
                             size = vec3(1.08, 0.80, 0.88),
                             rotation = 0.0,
                             items = {
-                                { name = 'beer', label = 'Beer', price = 6 },
+                                { name = 'ambeer', label = 'A.M. Beer', price = 7 },
+                                { name = 'dusche_beer', label = 'Dusche Gold', price = 8 },
+                                { name = 'logger_beer', label = 'Logger Beer', price = 7 },
+                                { name = 'pisswasser', label = 'Pißwasser', price = 6 },
                             },
                         },
                     },
@@ -238,13 +283,24 @@ return {
                         },
                     },
                     shelves = {
-                        candies = {
-                            label = 'Candies',
+                        snacks = {
+                            label = 'Snacks',
                             coords = vec3(-706.861, -913.984, 18.591),
                             size = vec3(0.82, 0.72, 0.82),
                             rotation = 0.0,
                             items = {
-                                { name = 'chocolate_bar', label = 'Candy Bar', price = 4 },
+                                { name = 'apple_juice', label = 'Apple Juice', price = 4 },
+                                { name = 'ecola', label = 'eCola', price = 4 },
+                                { name = 'ecola_light', label = 'eCola Light', price = 4 },
+                                { name = 'junk_drink', label = 'Junk Energy Drink', price = 5 },
+                                { name = 'orangotang', label = 'Orang-O-Tang', price = 5 },
+                                { name = 'raine', label = 'Raine', price = 4 },
+                                { name = 'sprunk', label = 'Sprunk', price = 4 },
+                                { name = 'sprunk_light', label = 'Sprunk Light', price = 4 },
+                                { name = 'slickers', label = 'Slickers', price = 4 },
+                                { name = 'twerks', label = 'Twerks', price = 4 },
+                                { name = 'phat_chips', label = 'Phat Chips', price = 5 },
+                                { name = 'egochaser_bar', label = 'EgoChaser Energy Bar', price = 6 },
                             },
                         },
                         food = {
@@ -253,7 +309,9 @@ return {
                             size = vec3(1.05, 0.76, 0.82),
                             rotation = 0.0,
                             items = {
-                                { name = 'sandwich', label = 'Deli Sandwich', price = 7 },
+                                { name = 'noodle_cup', label = 'Noodle Cup', price = 8 },
+                                { name = 'veggie_wrap', label = 'Veggie Wrap', price = 9 },
+                                { name = 'hotdog_plain', label = 'Hotdog', price = 7 },
                             },
                         },
                         drinks = {
@@ -262,7 +320,14 @@ return {
                             size = vec3(1.20, 0.82, 0.88),
                             rotation = 0.0,
                             items = {
-                                { name = 'water', label = 'Water', price = 3 },
+                                { name = 'apple_juice', label = 'Apple Juice', price = 4 },
+                                { name = 'ecola', label = 'eCola', price = 4 },
+                                { name = 'ecola_light', label = 'eCola Light', price = 4 },
+                                { name = 'junk_drink', label = 'Junk Energy Drink', price = 5 },
+                                { name = 'orangotang', label = 'Orang-O-Tang', price = 5 },
+                                { name = 'raine', label = 'Raine', price = 4 },
+                                { name = 'sprunk', label = 'Sprunk', price = 4 },
+                                { name = 'sprunk_light', label = 'Sprunk Light', price = 4 },
                             },
                         },
                         beer = {
@@ -271,7 +336,10 @@ return {
                             size = vec3(1.10, 0.82, 0.88),
                             rotation = 0.0,
                             items = {
-                                { name = 'beer', label = 'Beer', price = 6 },
+                                { name = 'ambeer', label = 'A.M. Beer', price = 7 },
+                                { name = 'dusche_beer', label = 'Dusche Gold', price = 8 },
+                                { name = 'logger_beer', label = 'Logger Beer', price = 7 },
+                                { name = 'pisswasser', label = 'Pißwasser', price = 6 },
                             },
                         },
                     },
@@ -289,13 +357,24 @@ return {
                         },
                     },
                     shelves = {
-                        candies = {
-                            label = 'Candies',
+                        snacks = {
+                            label = 'Snacks',
                             coords = vec3(374.375, 326.299, 102.928),
                             size = vec3(0.82, 0.72, 0.82),
                             rotation = 0.0,
                             items = {
-                                { name = 'chocolate_bar', label = 'Candy Bar', price = 4 },
+                                { name = 'apple_juice', label = 'Apple Juice', price = 4 },
+                                { name = 'ecola', label = 'eCola', price = 4 },
+                                { name = 'ecola_light', label = 'eCola Light', price = 4 },
+                                { name = 'junk_drink', label = 'Junk Energy Drink', price = 5 },
+                                { name = 'orangotang', label = 'Orang-O-Tang', price = 5 },
+                                { name = 'raine', label = 'Raine', price = 4 },
+                                { name = 'sprunk', label = 'Sprunk', price = 4 },
+                                { name = 'sprunk_light', label = 'Sprunk Light', price = 4 },
+                                { name = 'slickers', label = 'Slickers', price = 4 },
+                                { name = 'twerks', label = 'Twerks', price = 4 },
+                                { name = 'phat_chips', label = 'Phat Chips', price = 5 },
+                                { name = 'egochaser_bar', label = 'EgoChaser Energy Bar', price = 6 },
                             },
                         },
                         food = {
@@ -304,7 +383,9 @@ return {
                             size = vec3(1.05, 0.76, 0.82),
                             rotation = 0.0,
                             items = {
-                                { name = 'sandwich', label = 'Deli Sandwich', price = 7 },
+                                { name = 'noodle_cup', label = 'Noodle Cup', price = 8 },
+                                { name = 'veggie_wrap', label = 'Veggie Wrap', price = 9 },
+                                { name = 'hotdog_plain', label = 'Hotdog', price = 7 },
                             },
                         },
                         drinks = {
@@ -313,7 +394,14 @@ return {
                             size = vec3(1.20, 0.82, 0.88),
                             rotation = 0.0,
                             items = {
-                                { name = 'water', label = 'Water', price = 3 },
+                                { name = 'apple_juice', label = 'Apple Juice', price = 4 },
+                                { name = 'ecola', label = 'eCola', price = 4 },
+                                { name = 'ecola_light', label = 'eCola Light', price = 4 },
+                                { name = 'junk_drink', label = 'Junk Energy Drink', price = 5 },
+                                { name = 'orangotang', label = 'Orang-O-Tang', price = 5 },
+                                { name = 'raine', label = 'Raine', price = 4 },
+                                { name = 'sprunk', label = 'Sprunk', price = 4 },
+                                { name = 'sprunk_light', label = 'Sprunk Light', price = 4 },
                             },
                         },
                         beer = {
@@ -322,7 +410,10 @@ return {
                             size = vec3(1.10, 0.82, 0.88),
                             rotation = 0.0,
                             items = {
-                                { name = 'beer', label = 'Beer', price = 6 },
+                                { name = 'ambeer', label = 'A.M. Beer', price = 7 },
+                                { name = 'dusche_beer', label = 'Dusche Gold', price = 8 },
+                                { name = 'logger_beer', label = 'Logger Beer', price = 7 },
+                                { name = 'pisswasser', label = 'Pißwasser', price = 6 },
                             },
                         },
                     },
