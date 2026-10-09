@@ -176,6 +176,340 @@ return {
 		}
 	},
 
+	-- AVID CONVENIENCE STORE ITEMS -------------------------------------------------
+
+	['slickers'] = {
+		label = 'Slickers',
+		weight = 90,
+		stack = true,
+		close = true,
+		client = {
+			image = 'snikkel_candy.png',
+			status = { hunger = 90000, stress = -25000 },
+			anim = 'eating',
+			usetime = 1800,
+			cancel = true,
+			notification = 'You ate a Slickers bar'
+		}
+	},
+
+	['twerks'] = {
+		label = 'Twerks',
+		weight = 95,
+		stack = true,
+		close = true,
+		client = {
+			image = 'twerks_candy.png',
+			status = { hunger = 110000, stress = -30000 },
+			anim = 'eating',
+			usetime = 1800,
+			cancel = true,
+			notification = 'You ate a Twerks bar'
+		}
+	},
+
+	['phat_chips'] = {
+		label = 'Phat Chips',
+		weight = 145,
+		stack = true,
+		close = true,
+		client = {
+			image = 'phatchips_bigcheese.png',
+			status = { hunger = 180000, stress = -20000 },
+			anim = 'eating',
+			usetime = 2200,
+			cancel = true,
+			notification = 'You ate a bag of Phat Chips'
+		}
+	},
+
+	['egochaser_bar'] = {
+		label = 'EgoChaser Energy Bar',
+		weight = 85,
+		stack = true,
+		close = true,
+		client = {
+			image = 'ego_chaser.png',
+			status = { hunger = 150000, stress = -40000 },
+			anim = 'eating',
+			usetime = 1800,
+			cancel = true,
+			notification = 'You ate an EgoChaser bar'
+		}
+	},
+
+	['noodle_cup'] = {
+		label = 'Noodle Cup',
+		weight = 420,
+		stack = true,
+		close = true,
+		client = {
+			image = 'noodlecup.png',
+			status = { hunger = 280000, thirst = 30000, stress = -20000 },
+			anim = 'eating',
+			usetime = 3500,
+			cancel = true,
+			notification = 'You finished a cup of noodles'
+		}
+	},
+
+	['veggie_wrap'] = {
+		label = 'Veggie Wrap',
+		weight = 330,
+		stack = true,
+		close = true,
+		client = {
+			image = 'veggiewrap.png',
+			status = { hunger = 320000, thirst = 20000, stress = -15000 },
+			anim = 'eating',
+			usetime = 3200,
+			cancel = true,
+			notification = 'You ate a veggie wrap'
+		}
+	},
+
+	['hotdog_plain'] = {
+		label = 'Hotdog',
+		weight = 360,
+		stack = true,
+		close = true,
+		client = {
+			image = 'hotdog_plain.png',
+			status = { hunger = 360000, stress = -20000 },
+			anim = 'eating',
+			usetime = 3200,
+			cancel = true,
+			notification = 'You ate a hotdog'
+		}
+	},
+
+	['apple_juice'] = {
+		label = 'Apple Juice',
+		weight = 380,
+		stack = true,
+		close = true,
+		client = {
+			image = 'juice_apple.png',
+			status = { thirst = 260000, hunger = 30000, stress = -10000 },
+			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
+			prop = { model = \`prop_ld_flow_bottle\`, pos = vec3(0.03, 0.03, 0.02), rot = vec3(0.0, 0.0, -1.5) },
+			usetime = 2500,
+			cancel = true,
+			notification = 'You drank some apple juice'
+		}
+	},
+
+	['ecola'] = {
+		label = 'eCola',
+		weight = 350,
+		stack = true,
+		close = true,
+		client = {
+			image = 'ecola.png',
+			status = { thirst = 240000, stress = -30000 },
+			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
+			prop = { model = \`prop_ecola_can\`, pos = vec3(0.01, 0.01, 0.06), rot = vec3(5.0, 5.0, -180.5) },
+			usetime = 2500,
+			cancel = true,
+			notification = 'You drank an eCola'
+		}
+	},
+
+	['ecola_light'] = {
+		label = 'eCola Light',
+		weight = 350,
+		stack = true,
+		close = true,
+		client = {
+			image = 'ecola_light.png',
+			status = { thirst = 210000, stress = -20000 },
+			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
+			prop = { model = \`prop_ecola_can\`, pos = vec3(0.01, 0.01, 0.06), rot = vec3(5.0, 5.0, -180.5) },
+			usetime = 2500,
+			cancel = true,
+			notification = 'You drank an eCola Light'
+		}
+	},
+
+	['junk_drink'] = {
+		label = 'Junk Energy Drink',
+		weight = 350,
+		stack = true,
+		close = true,
+		client = {
+			image = 'junkdrink.png',
+			status = { thirst = 320000, stress = -50000 },
+			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
+			prop = { model = \`prop_ld_can_01\`, pos = vec3(0.01, 0.01, 0.06), rot = vec3(5.0, 5.0, -180.5) },
+			usetime = 2500,
+			cancel = true,
+			notification = 'You drank a Junk Energy Drink'
+		}
+	},
+
+	['orangotang'] = {
+		label = 'Orang-O-Tang',
+		weight = 350,
+		stack = true,
+		close = true,
+		client = {
+			image = 'orangotang.png',
+			status = { thirst = 280000, hunger = 20000, stress = -20000 },
+			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
+			prop = { model = \`prop_ld_can_01\`, pos = vec3(0.01, 0.01, 0.06), rot = vec3(5.0, 5.0, -180.5) },
+			usetime = 2500,
+			cancel = true,
+			notification = 'You drank an Orang-O-Tang'
+		}
+	},
+
+	['raine'] = {
+		label = 'Raine',
+		weight = 500,
+		stack = true,
+		close = true,
+		client = {
+			image = 'raine.png',
+			status = { thirst = 360000, stress = -15000 },
+			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
+			prop = { model = \`prop_ld_flow_bottle\`, pos = vec3(0.03, 0.03, 0.02), rot = vec3(0.0, 0.0, -1.5) },
+			usetime = 2500,
+			cancel = true,
+			notification = 'You drank a bottle of Raine'
+		}
+	},
+
+	['sprunk_light'] = {
+		label = 'Sprunk Light',
+		weight = 350,
+		stack = true,
+		close = true,
+		client = {
+			image = 'sprunklight.png',
+			status = { thirst = 220000, stress = -20000 },
+			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
+			prop = { model = \`prop_ld_can_01\`, pos = vec3(0.01, 0.01, 0.06), rot = vec3(5.0, 5.0, -180.5) },
+			usetime = 2500,
+			cancel = true,
+			notification = 'You drank a Sprunk Light'
+		}
+	},
+
+	['redwood_cigarettes'] = {
+		label = 'Redwood Cigarettes',
+		weight = 200,
+		stack = true,
+		close = true,
+		consume = 0.05,
+		client = {
+			image = 'cigsredwood1.png',
+			status = { stress = -120000 },
+			anim = { dict = 'amb@world_human_smoking@male@male_a@enter', clip = 'enter' },
+			prop = { model = \`prop_cs_ciggy_01\`, pos = vec3(0.015, 0.0, 0.0), rot = vec3(0.0, 0.0, 0.0) },
+			usetime = 3000,
+			cancel = true,
+			notification = 'You smoked a Redwood'
+		}
+	},
+
+	['cigs_69'] = {
+		label = '69 Brand Cigarettes',
+		weight = 200,
+		stack = true,
+		close = true,
+		consume = 0.05,
+		client = {
+			image = 'cigs_69.png',
+			status = { stress = -100000 },
+			anim = { dict = 'amb@world_human_smoking@male@male_a@enter', clip = 'enter' },
+			prop = { model = \`prop_cs_ciggy_01\`, pos = vec3(0.015, 0.0, 0.0), rot = vec3(0.0, 0.0, 0.0) },
+			usetime = 3000,
+			cancel = true,
+			notification = 'You smoked a 69 Brand cigarette'
+		}
+	},
+
+	['homies_cigars'] = {
+		label = 'Homies Cigars',
+		weight = 220,
+		stack = true,
+		close = true,
+		consume = 0.10,
+		client = {
+			image = 'cigars_homies.png',
+			status = { stress = -180000 },
+			anim = { dict = 'amb@world_human_smoking@male@male_a@enter', clip = 'enter' },
+			prop = { model = \`prop_cigar_02\`, pos = vec3(0.015, 0.0, 0.0), rot = vec3(0.0, 0.0, 0.0) },
+			usetime = 4500,
+			cancel = true,
+			notification = 'You smoked a Homies cigar'
+		}
+	},
+
+	['ambeer'] = {
+		label = 'A.M. Beer',
+		weight = 500,
+		stack = true,
+		close = true,
+		client = {
+			image = 'beer_ambeer.png',
+			status = { thirst = 100000, stress = -50000 },
+			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
+			prop = { model = \`prop_amb_beer_bottle\`, pos = vec3(0.01, 0.01, -0.02), rot = vec3(0.0, 0.0, -1.5) },
+			usetime = 3500,
+			cancel = true,
+			notification = 'You drank an A.M. Beer'
+		}
+	},
+
+	['dusche_beer'] = {
+		label = 'Dusche Gold',
+		weight = 500,
+		stack = true,
+		close = true,
+		client = {
+			image = 'beer_dusche.png',
+			status = { thirst = 110000, stress = -60000 },
+			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
+			prop = { model = \`prop_amb_beer_bottle\`, pos = vec3(0.01, 0.01, -0.02), rot = vec3(0.0, 0.0, -1.5) },
+			usetime = 3500,
+			cancel = true,
+			notification = 'You drank a Dusche Gold'
+		}
+	},
+
+	['logger_beer'] = {
+		label = 'Logger Beer',
+		weight = 500,
+		stack = true,
+		close = true,
+		client = {
+			image = 'beer_logger.png',
+			status = { thirst = 90000, stress = -70000 },
+			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
+			prop = { model = \`prop_amb_beer_bottle\`, pos = vec3(0.01, 0.01, -0.02), rot = vec3(0.0, 0.0, -1.5) },
+			usetime = 3500,
+			cancel = true,
+			notification = 'You drank a Logger Beer'
+		}
+	},
+
+	['pisswasser'] = {
+		label = 'Pißwasser',
+		weight = 500,
+		stack = true,
+		close = true,
+		client = {
+			image = 'beer_pisswaser.png',
+			status = { thirst = 120000, stress = -65000 },
+			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
+			prop = { model = \`prop_amb_beer_bottle\`, pos = vec3(0.01, 0.01, -0.02), rot = vec3(0.0, 0.0, -1.5) },
+			usetime = 3500,
+			cancel = true,
+			notification = 'You drank a Pißwasser'
+		}
+	},
+
 	['beer'] = {
 		label = 'Beer',
 		weight = 500,
@@ -212,12 +546,16 @@ return {
 	['sprunk'] = {
 		label = 'Sprunk',
 		weight = 350,
+		stack = true,
+		close = true,
 		client = {
-			status = { thirst = 200000 },
+			image = 'sprunk.png',
+			status = { thirst = 250000, stress = -30000 },
 			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
 			prop = { model = `prop_ld_can_01`, pos = vec3(0.01, 0.01, 0.06), rot = vec3(5.0, 5.0, -180.5) },
 			usetime = 2500,
-			notification = 'You quenched your thirst with a sprunk'
+			cancel = true,
+			notification = 'You drank a Sprunk'
 		}
 	},
 
@@ -306,13 +644,16 @@ return {
 	['water'] = {
 		label = 'Water',
 		weight = 500,
+		stack = true,
+		close = true,
 		client = {
-			status = { thirst = 200000 },
+			image = 'water_bottle.png',
+			status = { thirst = 300000, stress = -10000 },
 			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
 			prop = { model = `prop_ld_flow_bottle`, pos = vec3(0.03, 0.03, 0.02), rot = vec3(0.0, 0.0, -1.5) },
 			usetime = 2500,
 			cancel = true,
-			notification = 'You drank some refreshing water'
+			notification = 'You drank some water'
 		}
 	},
 
