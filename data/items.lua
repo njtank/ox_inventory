@@ -292,7 +292,7 @@ return {
 			image = 'juice_apple.png',
 			status = { thirst = 260000, hunger = 30000, stress = -10000 },
 			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
-			prop = { model = \`prop_ld_flow_bottle\`, pos = vec3(0.03, 0.03, 0.02), rot = vec3(0.0, 0.0, -1.5) },
+			prop = { model = `prop_ld_flow_bottle`, pos = vec3(0.03, 0.03, 0.02), rot = vec3(0.0, 0.0, -1.5) },
 			usetime = 2500,
 			cancel = true,
 			notification = 'You drank some apple juice'
@@ -308,7 +308,7 @@ return {
 			image = 'ecola.png',
 			status = { thirst = 240000, stress = -30000 },
 			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
-			prop = { model = \`prop_ecola_can\`, pos = vec3(0.01, 0.01, 0.06), rot = vec3(5.0, 5.0, -180.5) },
+			prop = { model = `prop_ecola_can`, pos = vec3(0.01, 0.01, 0.06), rot = vec3(5.0, 5.0, -180.5) },
 			usetime = 2500,
 			cancel = true,
 			notification = 'You drank an eCola'
@@ -324,7 +324,7 @@ return {
 			image = 'ecola_light.png',
 			status = { thirst = 210000, stress = -20000 },
 			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
-			prop = { model = \`prop_ecola_can\`, pos = vec3(0.01, 0.01, 0.06), rot = vec3(5.0, 5.0, -180.5) },
+			prop = { model = `prop_ecola_can`, pos = vec3(0.01, 0.01, 0.06), rot = vec3(5.0, 5.0, -180.5) },
 			usetime = 2500,
 			cancel = true,
 			notification = 'You drank an eCola Light'
@@ -340,7 +340,7 @@ return {
 			image = 'junkdrink.png',
 			status = { thirst = 320000, stress = -50000 },
 			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
-			prop = { model = \`prop_ld_can_01\`, pos = vec3(0.01, 0.01, 0.06), rot = vec3(5.0, 5.0, -180.5) },
+			prop = { model = `prop_ld_can_01`, pos = vec3(0.01, 0.01, 0.06), rot = vec3(5.0, 5.0, -180.5) },
 			usetime = 2500,
 			cancel = true,
 			notification = 'You drank a Junk Energy Drink'
@@ -356,7 +356,7 @@ return {
 			image = 'orangotang.png',
 			status = { thirst = 280000, hunger = 20000, stress = -20000 },
 			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
-			prop = { model = \`prop_ld_can_01\`, pos = vec3(0.01, 0.01, 0.06), rot = vec3(5.0, 5.0, -180.5) },
+			prop = { model = `prop_ld_can_01`, pos = vec3(0.01, 0.01, 0.06), rot = vec3(5.0, 5.0, -180.5) },
 			usetime = 2500,
 			cancel = true,
 			notification = 'You drank an Orang-O-Tang'
@@ -372,7 +372,7 @@ return {
 			image = 'raine.png',
 			status = { thirst = 360000, stress = -15000 },
 			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
-			prop = { model = \`prop_ld_flow_bottle\`, pos = vec3(0.03, 0.03, 0.02), rot = vec3(0.0, 0.0, -1.5) },
+			prop = { model = `prop_ld_flow_bottle`, pos = vec3(0.03, 0.03, 0.02), rot = vec3(0.0, 0.0, -1.5) },
 			usetime = 2500,
 			cancel = true,
 			notification = 'You drank a bottle of Raine'
@@ -388,7 +388,7 @@ return {
 			image = 'sprunklight.png',
 			status = { thirst = 220000, stress = -20000 },
 			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
-			prop = { model = \`prop_ld_can_01\`, pos = vec3(0.01, 0.01, 0.06), rot = vec3(5.0, 5.0, -180.5) },
+			prop = { model = `prop_ld_can_01`, pos = vec3(0.01, 0.01, 0.06), rot = vec3(5.0, 5.0, -180.5) },
 			usetime = 2500,
 			cancel = true,
 			notification = 'You drank a Sprunk Light'
@@ -405,7 +405,7 @@ return {
 			image = 'cigsredwood1.png',
 			status = { stress = -120000 },
 			anim = { dict = 'amb@world_human_smoking@male@male_a@enter', clip = 'enter' },
-			prop = { model = \`prop_cs_ciggy_01\`, pos = vec3(0.015, 0.0, 0.0), rot = vec3(0.0, 0.0, 0.0) },
+			prop = { model = `prop_cs_ciggy_01`, pos = vec3(0.015, 0.0, 0.0), rot = vec3(0.0, 0.0, 0.0) },
 			usetime = 3000,
 			cancel = true,
 			notification = 'You smoked a Redwood'
@@ -422,7 +422,7 @@ return {
 			image = 'cigs_69.png',
 			status = { stress = -100000 },
 			anim = { dict = 'amb@world_human_smoking@male@male_a@enter', clip = 'enter' },
-			prop = { model = \`prop_cs_ciggy_01\`, pos = vec3(0.015, 0.0, 0.0), rot = vec3(0.0, 0.0, 0.0) },
+			prop = { model = `prop_cs_ciggy_01`, pos = vec3(0.015, 0.0, 0.0), rot = vec3(0.0, 0.0, 0.0) },
 			usetime = 3000,
 			cancel = true,
 			notification = 'You smoked a 69 Brand cigarette'
@@ -439,7 +439,7 @@ return {
 			image = 'cigars_homies.png',
 			status = { stress = -180000 },
 			anim = { dict = 'amb@world_human_smoking@male@male_a@enter', clip = 'enter' },
-			prop = { model = \`prop_cigar_02\`, pos = vec3(0.015, 0.0, 0.0), rot = vec3(0.0, 0.0, 0.0) },
+			prop = { model = `prop_cigar_02`, pos = vec3(0.015, 0.0, 0.0), rot = vec3(0.0, 0.0, 0.0) },
 			usetime = 4500,
 			cancel = true,
 			notification = 'You smoked a Homies cigar'
@@ -455,7 +455,7 @@ return {
 			image = 'beer_ambeer.png',
 			status = { thirst = 100000, stress = -50000 },
 			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
-			prop = { model = \`prop_amb_beer_bottle\`, pos = vec3(0.01, 0.01, -0.02), rot = vec3(0.0, 0.0, -1.5) },
+			prop = { model = `prop_amb_beer_bottle`, pos = vec3(0.01, 0.01, -0.02), rot = vec3(0.0, 0.0, -1.5) },
 			usetime = 3500,
 			cancel = true,
 			notification = 'You drank an A.M. Beer'
@@ -471,7 +471,7 @@ return {
 			image = 'beer_dusche.png',
 			status = { thirst = 110000, stress = -60000 },
 			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
-			prop = { model = \`prop_amb_beer_bottle\`, pos = vec3(0.01, 0.01, -0.02), rot = vec3(0.0, 0.0, -1.5) },
+			prop = { model = `prop_amb_beer_bottle`, pos = vec3(0.01, 0.01, -0.02), rot = vec3(0.0, 0.0, -1.5) },
 			usetime = 3500,
 			cancel = true,
 			notification = 'You drank a Dusche Gold'
@@ -487,7 +487,7 @@ return {
 			image = 'beer_logger.png',
 			status = { thirst = 90000, stress = -70000 },
 			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
-			prop = { model = \`prop_amb_beer_bottle\`, pos = vec3(0.01, 0.01, -0.02), rot = vec3(0.0, 0.0, -1.5) },
+			prop = { model = `prop_amb_beer_bottle`, pos = vec3(0.01, 0.01, -0.02), rot = vec3(0.0, 0.0, -1.5) },
 			usetime = 3500,
 			cancel = true,
 			notification = 'You drank a Logger Beer'
@@ -503,7 +503,7 @@ return {
 			image = 'beer_pisswaser.png',
 			status = { thirst = 120000, stress = -65000 },
 			anim = { dict = 'mp_player_intdrink', clip = 'loop_bottle' },
-			prop = { model = \`prop_amb_beer_bottle\`, pos = vec3(0.01, 0.01, -0.02), rot = vec3(0.0, 0.0, -1.5) },
+			prop = { model = `prop_amb_beer_bottle`, pos = vec3(0.01, 0.01, -0.02), rot = vec3(0.0, 0.0, -1.5) },
 			usetime = 3500,
 			cancel = true,
 			notification = 'You drank a Pißwasser'
