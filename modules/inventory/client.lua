@@ -4,7 +4,7 @@ local Inventory = {}
 
 Inventory.Dumpsters = lib.array:new(218085040, 666561306, -58485588, -206690185, 1511880420, 682791951)
 
-if shared.networkdumpsters then
+if shared.dumpsters and shared.networkdumpsters then
     -- Make sure dumpsters are frozen to ensure persistent position across clients
     SetInterval(function()
         local objects = GetGamePool('CObject')
@@ -28,6 +28,8 @@ if shared.networkdumpsters then
 end
 
 function Inventory.OpenDumpster(entity)
+    if not shared.dumpsters then return end
+
     if shared.networkdumpsters then
         local coords = GetEntityCoords(entity)
         client.openInventory('dumpster', coords)
@@ -106,12 +108,14 @@ function Inventory.OpenTrunk(entity)
 end
 
 if shared.target then
-    exports.ox_target:addModel(Inventory.Dumpsters, {
-        icon = 'fas fa-dumpster',
-        label = locale('search_dumpster'),
-        onSelect = function(data) return Inventory.OpenDumpster(data.entity) end,
-        distance = 2
-    })
+    if shared.dumpsters then
+        exports.ox_target:addModel(Inventory.Dumpsters, {
+            icon = 'fas fa-dumpster',
+            label = locale('search_dumpster'),
+            onSelect = function(data) return Inventory.OpenDumpster(data.entity) end,
+            distance = 2
+        })
+    end
 
     exports.ox_target:addGlobalVehicle({
         icon = 'fas fa-truck-ramp-box',

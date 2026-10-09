@@ -59,4 +59,23 @@ setContainerProperties('pizzabox', {
 	whitelist = { 'pizza' }
 })
 
+
+setContainerProperties('backpack_small', {
+	slots = 30,
+	maxWeight = 10000,
+	blacklist = { 'backpack_small', 'backpack_medium', 'backpack_large' }
+})
+
+setContainerProperties('backpack_medium', {
+	slots = 42,
+	maxWeight = 18000,
+	blacklist = { 'backpack_small', 'backpack_medium', 'backpack_large' }
+})
+
+setContainerProperties('backpack_large', {
+	slots = 56,
+	maxWeight = 26000,
+	blacklist = { 'backpack_small', 'backpack_medium', 'backpack_large' }
+})
+
 return containers
